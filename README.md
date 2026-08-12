@@ -1,8 +1,16 @@
+<div align="center">
+
 # Notification Services Pattern
 
-[🇬🇧 English](#english) | [🇮🇷 فارسی](#فارسی)
+**A reusable and extensible notification infrastructure for .NET applications.**
 
 [![CI](https://github.com/Mohammad-Amin-Nazeri/Notification_Services_Pattern/actions/workflows/ci.yml/badge.svg)](https://github.com/Mohammad-Amin-Nazeri/Notification_Services_Pattern/actions/workflows/ci.yml)
+
+**Language / زبان:** [🇬🇧 English](#english) · [🇮🇷 فارسی](#فارسی)
+
+</div>
+
+---
 
 <a id="english"></a>
 
@@ -65,6 +73,8 @@ Notification_Services_Pattern
 
 #### Email
 
+Send a general-purpose email:
+
 ```csharp
 await emailService.SendMessageAsync(
     new EmailMessage(
@@ -73,6 +83,8 @@ await emailService.SendMessageAsync(
         "<h1>Welcome!</h1>",
         true));
 ```
+
+Send an OTP email:
 
 ```csharp
 await emailService.SendOtpAsync(
@@ -83,12 +95,16 @@ await emailService.SendOtpAsync(
 
 #### SMS
 
+Send a general-purpose SMS:
+
 ```csharp
 await smsService.SendMessageAsync(
     new SmsMessage(
         "09120000000",
         "Your order has been registered."));
 ```
+
+Send an OTP SMS:
 
 ```csharp
 await smsService.SendOtpAsync(
@@ -147,7 +163,7 @@ The default implementations read provider settings from configuration.
 }
 ```
 
-Never commit real passwords, API keys, SMTP credentials, or SMS provider secrets to source control. Use environment variables, .NET User Secrets, or another secure configuration provider.
+> **Security:** Never commit real passwords, API keys, SMTP credentials, or SMS provider secrets to source control. Use environment variables, .NET User Secrets, or another secure configuration provider.
 
 ### 🧩 Extensibility
 
@@ -238,23 +254,24 @@ samples/NotificationServices.Sample
 
 ### 🌟 Support the Project
 
-If this project is useful to you, please consider giving the repository a ⭐ on GitHub. It helps the project gain visibility and motivates further development.
+If this project is useful to you, please consider giving the repository a ⭐ on GitHub. Your support helps the project gain visibility and motivates further development.
 
 ### 🤝 Contributing & Suggesting New Services
 
-Contributions are welcome.
+Contributions and ideas are welcome.
 
-Have an idea for a new notification service or provider? Open a GitHub **Issue** and describe the use case and proposed integration.
+Need a new notification channel or provider? Open a GitHub **Issue** and describe the use case, provider, API requirements, and expected integration.
 
-Examples of possible future services:
+Ideas for future integrations include:
 
 - WhatsApp
 - Telegram
 - Push Notifications
 - Microsoft Teams
 - Discord
-- Other SMS gateways
-- Other email providers
+- Additional SMS gateways
+- Additional Email providers
+- Other notification channels
 
 You can also open a Pull Request with a new provider implementation.
 
@@ -286,16 +303,14 @@ The goal is to provide a small, reusable notification infrastructure that can be
 
 ### 👨‍💻 Developer
 
-Developed and maintained by **Mohammad Amin Nazeri**.
+Developed and maintained by **[Mohammad Amin Nazeri](https://github.com/Mohammad-Amin-Nazeri)**.
 
-- 💻 GitHub: [Mohammad-Amin-Nazeri](https://github.com/Mohammad-Amin-Nazeri)
-- 💼 LinkedIn: [Mohammad Amin Nazeri](https://www.linkedin.com/in/mohammad-amin-nazeri/)
-- 📱 Telegram: [@nazrymhmdamyn85](https://t.me/nazrymhmdamyn85)
-- 📸 Instagram: [@nazrymhmdamyn85](https://www.instagram.com/nazrymhmdamyn85/)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mohammad-amin-nazeri)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Mohammad-Amin-Nazeri)
+[![Telegram](https://img.shields.io/badge/Telegram-2CA5E2?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/Aminn02)
+[![Instagram](https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/mohammad_amin_nazeri/)
 
-### 📄 License
-
-MIT License. See [`LICENSE`](LICENSE).
+**Language / زبان:** [🇬🇧 English](#english) · [🇮🇷 فارسی](#فارسی)
 
 ---
 
@@ -389,15 +404,21 @@ services.AddEmailService<MyEmailOptionsProvider>();
 services.AddSmsService<MySmsOptionsProvider>();
 ```
 
+### 🔧 Configuration
+
+تنظیمات پیش‌فرض Providerها از Configuration خوانده می‌شود و می‌توان منبع آن را با Provider سفارشی تغییر داد.
+
+> **امنیت:** هیچ Password، API Key، اطلاعات SMTP یا Secret سرویس پیامکی واقعی را داخل Repository قرار ندهید. از Environment Variable، .NET User Secrets یا Secret Store مناسب استفاده کنید.
+
 ### 🧪 تست‌ها
 
-تست‌ها در مسیر زیر قرار دارند:
+تست‌های پروژه در مسیر زیر قرار دارند:
 
 ```text
 Tests/NotificationServices.Tests
 ```
 
-تست‌های پروژه رفتار سرویس‌ها، اعتبارسنجی، Factory، Configuration، درخواست‌های HTTP، خطاهای Provider و OTP را پوشش می‌دهند.
+تست‌ها رفتار سرویس‌ها، اعتبارسنجی، Factory، Configuration، درخواست‌های HTTP، خطاهای Provider و OTP را پوشش می‌دهند.
 
 برای اجرای تمام تست‌ها:
 
@@ -405,13 +426,27 @@ Tests/NotificationServices.Tests
 dotnet test
 ```
 
+### 🤖 CI
+
+GitHub Actions به‌صورت خودکار مراحل زیر را برای Push و Pull Request اجرا می‌کند:
+
+```text
+Restore
+  ↓
+Build
+  ↓
+Test
+```
+
+### 🌟 حمایت از پروژه
+
+اگر این پروژه برای شما مفید بود، با دادن یک ⭐ به Repository در GitHub از پروژه حمایت کنید. این کار به دیده‌شدن پروژه و ادامه توسعه آن کمک می‌کند.
+
 ### 🤝 مشارکت و پیشنهاد سرویس جدید
 
-مشارکت در توسعه پروژه آزاد است.
+اگر به Provider یا کانال اعلان جدیدی نیاز دارید، یک **Issue** در GitHub ایجاد کنید و کاربرد، Provider، نیازمندی‌های API و نحوه ادغام پیشنهادی را توضیح دهید.
 
-اگر به یک Provider یا کانال اعلان جدید نیاز دارید، یک **Issue** در GitHub ایجاد کنید و کاربرد و پیشنهاد خود را توضیح دهید.
-
-برای نمونه می‌توان در آینده سرویس‌هایی مانند موارد زیر را اضافه کرد:
+برای نمونه می‌توان در آینده موارد زیر را اضافه کرد:
 
 - WhatsApp
 - Telegram
@@ -420,22 +455,31 @@ dotnet test
 - Discord
 - Providerهای بیشتر SMS
 - Providerهای بیشتر Email
+- کانال‌های جدید اعلان
 
-همچنین می‌توانید برای Provider جدید Pull Request ارسال کنید.
+برای افزودن Provider جدید همچنین می‌توانید Pull Request ارسال کنید.
 
-### 🌟 حمایت از پروژه
+### 🎯 هدف پروژه
 
-اگر این پروژه برای شما مفید بود، با دادن یک ⭐ به Repository در GitHub از پروژه حمایت کنید. این کار به دیده‌شدن پروژه و ادامه توسعه آن کمک می‌کند.
+هدف پروژه ارائه یک زیرساخت کوچک، قابل استفاده مجدد و قابل توسعه برای اعلان‌هاست تا کد تجاری پروژه به Provider یا منبع Configuration خاصی وابسته نباشد.
 
 ### 👨‍💻 توسعه‌دهنده
 
-توسعه داده و نگهداری می‌شود توسط **محمدامین ناظری**.
+توسعه داده و نگهداری می‌شود توسط **[محمد امین ناظری](https://github.com/Mohammad-Amin-Nazeri)**.
 
-- 💻 GitHub: [Mohammad-Amin-Nazeri](https://github.com/Mohammad-Amin-Nazeri)
-- 💼 LinkedIn: [Mohammad Amin Nazeri](https://www.linkedin.com/in/mohammad-amin-nazeri/)
-- 📱 Telegram: [@nazrymhmdamyn85](https://t.me/nazrymhmdamyn85)
-- 📸 Instagram: [@nazrymhmdamyn85](https://www.instagram.com/nazrymhmdamyn85/)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mohammad-amin-nazeri)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Mohammad-Amin-Nazeri)
+[![Telegram](https://img.shields.io/badge/Telegram-2CA5E2?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/Aminn02)
+[![Instagram](https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/mohammad_amin_nazeri/)
 
-### 📄 مجوز
+**تغییر زبان:** [🇬🇧 English](#english) · [🇮🇷 فارسی](#فارسی)
 
-این پروژه تحت مجوز MIT منتشر شده است. جزئیات در فایل [`LICENSE`](LICENSE) قرار دارد.
+---
+
+<div align="center">
+
+⭐ **If this project helped you, consider starring the repository.**
+
+Made with ❤️ for the .NET community.
+
+</div>
