@@ -10,26 +10,19 @@ public sealed class MelipayamakSmsProviderTests
     [Fact]
     public async Task SendMessageAsync_ShouldSendCorrectRequest()
     {
-        HttpRequestMessage? capturedRequest = null;
+        HttpMethod? capturedMethod = null;
+        string? capturedUrl = null;
+        string? capturedBody = null;
 
         var handler = new FakeHttpMessageHandler(
-            request =>
+            async request =>
             {
-                capturedRequest = request;
+                capturedMethod = request.Method;
+                capturedUrl = request.RequestUri?.ToString();
+                capturedBody =
+                    await request.Content!.ReadAsStringAsync();
 
-                return new HttpResponseMessage(
-                    HttpStatusCode.OK)
-                {
-                    Content = new StringContent(
-                        """
-                        {
-                            "RetStatus": 1,
-                            "Value": "123456"
-                        }
-                        """,
-                        Encoding.UTF8,
-                        "application/json")
-                };
+                return CreateSuccessResponse("123456");
             });
 
         using var httpClient = new HttpClient(handler);
@@ -48,67 +41,62 @@ public sealed class MelipayamakSmsProviderTests
             message);
 
         Assert.True(result.IsSuccess);
+
         Assert.Equal(
             "123456",
             result.Message);
 
-        Assert.NotNull(capturedRequest);
-
         Assert.Equal(
             HttpMethod.Post,
-            capturedRequest!.Method);
+            capturedMethod);
 
         Assert.Equal(
             options.BaseUrl,
-            capturedRequest.RequestUri!.ToString());
+            capturedUrl);
 
-        var body =
-            await capturedRequest.Content!.ReadAsStringAsync();
+        Assert.NotNull(capturedBody);
 
         Assert.Contains(
             "username=test-user",
-            body);
+            capturedBody);
 
         Assert.Contains(
             "password=test-password",
-            body);
+            capturedBody);
 
         Assert.Contains(
             "to=09120000000",
-            body);
+            capturedBody);
 
         Assert.Contains(
             "from=50004001",
-            body);
+            capturedBody);
 
         Assert.Contains(
-            "text=Hello",
-            body);
+            "text=Hello+World",
+            capturedBody);
+
+        Assert.Contains(
+            "isFlash=false",
+            capturedBody);
     }
 
     [Fact]
     public async Task SendOtpAsync_ShouldUsePatternEndpoint()
     {
-        HttpRequestMessage? capturedRequest = null;
+        HttpMethod? capturedMethod = null;
+        string? capturedUrl = null;
+        string? capturedBody = null;
 
         var handler = new FakeHttpMessageHandler(
-            request =>
+            async request =>
             {
-                capturedRequest = request;
+                capturedMethod = request.Method;
+                capturedUrl = request.RequestUri?.ToString();
+                capturedBody =
+                    await request.Content!.ReadAsStringAsync();
 
-                return new HttpResponseMessage(
-                    HttpStatusCode.OK)
-                {
-                    Content = new StringContent(
-                        """
-                        {
-                            "RetStatus": 1,
-                            "Value": "987654"
-                        }
-                        """,
-                        Encoding.UTF8,
-                        "application/json")
-                };
+                return CreateSuccessResponse("987654");
             });
 
         using var httpClient = new HttpClient(handler);
@@ -127,30 +115,40 @@ public sealed class MelipayamakSmsProviderTests
             otp);
 
         Assert.True(result.IsSuccess);
+
         Assert.Equal(
             "987654",
             result.Message);
 
-        Assert.NotNull(capturedRequest);
+        Assert.Equal(
+            HttpMethod.Post,
+            capturedMethod);
 
         Assert.Equal(
             options.PatternBaseUrl,
-            capturedRequest!.RequestUri!.ToString());
+            capturedUrl);
 
-        var body =
-            await capturedRequest.Content!.ReadAsStringAsync();
+        Assert.NotNull(capturedBody);
+
+        Assert.Contains(
+            "username=test-user",
+            capturedBody);
+
+        Assert.Contains(
+            "password=test-password",
+            capturedBody);
 
         Assert.Contains(
             "to=09120000000",
-            body);
+            capturedBody);
 
         Assert.Contains(
             "bodyId=12345",
-            body);
+            capturedBody);
 
         Assert.Contains(
             "text=123456%3B",
-            body);
+            capturedBody);
     }
 
     [Fact]
@@ -158,8 +156,9 @@ public sealed class MelipayamakSmsProviderTests
     {
         var handler = new FakeHttpMessageHandler(
             _ =>
-                new HttpResponseMessage(
-                    HttpStatusCode.BadRequest));
+                Task.FromResult(
+                    new HttpResponseMessage(
+                        HttpStatusCode.BadRequest)));
 
         using var httpClient = new HttpClient(handler);
 
@@ -173,6 +172,7 @@ public sealed class MelipayamakSmsProviderTests
                 "Hello"));
 
         Assert.False(result.IsSuccess);
+
         Assert.Equal(
             "BadRequest",
             result.ErrorCode);
@@ -183,12 +183,13 @@ public sealed class MelipayamakSmsProviderTests
     {
         var handler = new FakeHttpMessageHandler(
             _ =>
-                new HttpResponseMessage(
-                    HttpStatusCode.OK)
-                {
-                    Content = new StringContent(
-                        "not-json")
-                });
+                Task.FromResult(
+                    new HttpResponseMessage(
+                        HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(
+                            "not-json")
+                    }));
 
         using var httpClient = new HttpClient(handler);
 
@@ -213,12 +214,13 @@ public sealed class MelipayamakSmsProviderTests
     {
         var handler = new FakeHttpMessageHandler(
             _ =>
-                new HttpResponseMessage(
-                    HttpStatusCode.OK)
-                {
-                    Content = new StringContent(
-                        "null")
-                });
+                Task.FromResult(
+                    new HttpResponseMessage(
+                        HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(
+                            "null")
+                    }));
 
         using var httpClient = new HttpClient(handler);
 
@@ -243,19 +245,20 @@ public sealed class MelipayamakSmsProviderTests
     {
         var handler = new FakeHttpMessageHandler(
             _ =>
-                new HttpResponseMessage(
-                    HttpStatusCode.OK)
-                {
-                    Content = new StringContent(
-                        """
-                        {
-                            "RetStatus": 0,
-                            "Value": "Invalid credentials"
-                        }
-                        """,
-                        Encoding.UTF8,
-                        "application/json")
-                });
+                Task.FromResult(
+                    new HttpResponseMessage(
+                        HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(
+                            """
+                            {
+                                "RetStatus": 0,
+                                "Value": "Invalid credentials"
+                            }
+                            """,
+                            Encoding.UTF8,
+                            "application/json")
+                    }));
 
         using var httpClient = new HttpClient(handler);
 
@@ -283,12 +286,15 @@ public sealed class MelipayamakSmsProviderTests
     public async Task SendMessageAsync_WhenBaseUrlIsMissing_ShouldThrow()
     {
         var options = CreateOptions();
+
         options.BaseUrl = "";
 
         using var httpClient = new HttpClient(
             new FakeHttpMessageHandler(
-                _ => new HttpResponseMessage(
-                    HttpStatusCode.OK)));
+                _ =>
+                    Task.FromResult(
+                        new HttpResponseMessage(
+                            HttpStatusCode.OK))));
 
         var provider = new MelipayamakSmsProvider(
             options,
@@ -305,12 +311,15 @@ public sealed class MelipayamakSmsProviderTests
     public async Task SendOtpAsync_WhenPatternUrlIsMissing_ShouldThrow()
     {
         var options = CreateOptions();
+
         options.PatternBaseUrl = "";
 
         using var httpClient = new HttpClient(
             new FakeHttpMessageHandler(
-                _ => new HttpResponseMessage(
-                    HttpStatusCode.OK)));
+                _ =>
+                    Task.FromResult(
+                        new HttpResponseMessage(
+                            HttpStatusCode.OK))));
 
         var provider = new MelipayamakSmsProvider(
             options,
@@ -327,12 +336,15 @@ public sealed class MelipayamakSmsProviderTests
     public async Task SendOtpAsync_WhenBodyIdIsMissing_ShouldThrow()
     {
         var options = CreateOptions();
+
         options.BodyId = "";
 
         using var httpClient = new HttpClient(
             new FakeHttpMessageHandler(
-                _ => new HttpResponseMessage(
-                    HttpStatusCode.OK)));
+                _ =>
+                    Task.FromResult(
+                        new HttpResponseMessage(
+                            HttpStatusCode.OK))));
 
         var provider = new MelipayamakSmsProvider(
             options,
@@ -359,16 +371,44 @@ public sealed class MelipayamakSmsProviderTests
         };
     }
 
-    private sealed class FakeHttpMessageHandler(
-        Func<HttpRequestMessage, HttpResponseMessage> handler)
+    private static HttpResponseMessage CreateSuccessResponse(
+        string value)
+    {
+        return new HttpResponseMessage(
+            HttpStatusCode.OK)
+        {
+            Content = new StringContent(
+                $$"""
+                {
+                    "RetStatus": 1,
+                    "Value": "{{value}}"
+                }
+                """,
+                Encoding.UTF8,
+                "application/json")
+        };
+    }
+
+    private sealed class FakeHttpMessageHandler
         : HttpMessageHandler
     {
+        private readonly Func<
+            HttpRequestMessage,
+            Task<HttpResponseMessage>> _handler;
+
+        public FakeHttpMessageHandler(
+            Func<
+                HttpRequestMessage,
+                Task<HttpResponseMessage>> handler)
+        {
+            _handler = handler;
+        }
+
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
-            return Task.FromResult(
-                handler(request));
+            return _handler(request);
         }
     }
 }
