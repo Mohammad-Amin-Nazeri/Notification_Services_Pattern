@@ -29,5 +29,12 @@ jobs:
       - name: Build
         run: dotnet build NotificationServices.slnx --configuration Release --no-restore
 
-      - name: Run tests
-        run: dotnet test NotificationServices.slnx --configuration Release --no-build
+      - name: Run tests with coverage
+        run: dotnet test NotificationServices.slnx --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory ./TestResults
+
+      - name: Upload coverage results
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage
+          path: TestResults/**/coverage.cobertura.xml
+          if-no-files-found: error
