@@ -1,7 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using NotificationServices.Configuration;
+using NotificationServices.Email;
 using NotificationServices.Email.Abstractions.Interfaces;
 using NotificationServices.Email.DependencyInjection;
+using NotificationServices.Sms;
 using NotificationServices.Sms.Abstractions.Interfaces;
 using NotificationServices.Sms.DependencyInjection;
 
