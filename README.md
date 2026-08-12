@@ -450,21 +450,6 @@ A Star helps more developers discover the project and supports continued develop
 
 ---
 
-## 👨‍💻 Developer
-
-### Mohammad Amin Nazeri
-
-Developer and maintainer of **Notification Services Pattern**.
-
-<a href="https://github.com/Mohammad-Amin-Nazeri">Mohammad Amin Nazeri</a>
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mohammad-amin-nazeri)
-[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Mohammad-Amin-Nazeri)
-[![Telegram](https://img.shields.io/badge/Telegram-2CA5E2?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/Aminn02)
-[![Instagram](https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/mohammad_amin_nazeri/)
-
----
-
 ## 📄 License
 
 MIT License. See [LICENSE](LICENSE).
@@ -894,21 +879,6 @@ dotnet pack src/NotificationServices/NotificationServices.csproj -c Release
 Star کردن پروژه باعث می‌شود افراد بیشتری آن را ببینند و به ادامه توسعه و نگهداری آن کمک می‌کند.
 
 👉 **[⭐ Star کردن Notification Services Pattern در GitHub](https://github.com/Mohammad-Amin-Nazeri/Notification_Services_Pattern)**
-
----
-
-## 👨‍💻 توسعه‌دهنده
-
-### محمد امین ناظری | Mohammad Amin Nazeri
-
-توسعه‌دهنده و نگهدارنده پروژه **Notification Services Pattern**.
-
-<a href="https://github.com/Mohammad-Amin-Nazeri">Mohammad Amin Nazeri</a>
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mohammad-amin-nazeri)
-[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Mohammad-Amin-Nazeri)
-[![Telegram](https://img.shields.io/badge/Telegram-2CA5E2?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/Aminn02)
-[![Instagram](https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/mohammad_amin_nazeri/)
 
 ---
 
