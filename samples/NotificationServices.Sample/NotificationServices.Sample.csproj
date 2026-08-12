@@ -17,10 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Email\NotificationServices.Email.Abstractions\NotificationServices.Email.Abstractions.csproj" />
-    <ProjectReference Include="..\..\Email\NotificationServices.Email\NotificationServices.Email.csproj" />
-    <ProjectReference Include="..\..\Sms\NotificationServices.Sms.Abstractions\NotificationServices.Sms.Abstractions.csproj" />
-    <ProjectReference Include="..\..\Sms\NotificationServices.Sms\NotificationServices.Sms.csproj" />
+    <ProjectReference Include="..\..\src\NotificationServices\NotificationServices.csproj" />
   </ItemGroup>
 
   <ItemGroup>
