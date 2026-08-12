@@ -4,77 +4,141 @@ using NotificationServices.Sms.Abstractions.Models;
 
 namespace NotificationServices.Sms.Providers;
 
-/// <summary>
-/// SAMPLE / REFERENCE PROVIDER.
-///
-/// This is a working implementation of <see cref="ISmsProvider"/> for the Melipayamak.com
-/// SMS gateway, included as an example of how a real provider plugs into this library.
-/// It is a good template to copy from when adding support for another gateway
-/// (Kavenegar, Twilio, SMS.ir, ...): implement <see cref="ISmsProvider"/>, add a value to
-/// <c>SmsProviderType</c>, and wire it up in <c>SmsProviderFactory</c>.
-/// </summary>
-public class MelipayamakSmsProvider : ISmsProvider
+public sealed class MelipayamakSmsProvider : ISmsProvider
 {
     private readonly SmsProviderOptions _options;
     private readonly HttpClient _httpClient;
-    private readonly string _baseUrl;
 
-    public MelipayamakSmsProvider(SmsProviderOptions options, HttpClient httpClient, string baseUrl)
+    public MelipayamakSmsProvider(
+        SmsProviderOptions options,
+        HttpClient httpClient)
     {
-        if (string.IsNullOrWhiteSpace(baseUrl))
-            throw new ArgumentException("Melipayamak base URL must be configured.", nameof(baseUrl));
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(httpClient);
 
         _options = options;
         _httpClient = httpClient;
-        _baseUrl = baseUrl;
     }
 
-    public async Task<SmsResult> SendAsync(SmsRequest request)
+    public async Task<SmsResult> SendMessageAsync(
+        SmsMessage message,
+        CancellationToken cancellationToken = default)
     {
-        var response = await SendInternalAsync(request);
-        return new SmsResult
-        {
-            IsSuccess = response?.RetStatus == 1,
-            Message = response?.Value
-        };
-    }
+        ArgumentNullException.ThrowIfNull(message);
 
-    public async Task<SmsResult> SendBulkAsync(IReadOnlyCollection<SmsRequest> requests)
-    {
-        foreach (var request in requests)
+        if (string.IsNullOrWhiteSpace(_options.BaseUrl))
         {
-            var response = await SendInternalAsync(request);
-            if (response?.RetStatus != 1)
-                return new SmsResult { IsSuccess = false, Message = response?.Value };
+            throw new InvalidOperationException(
+                "SMS provider BaseUrl is not configured.");
         }
 
-        return new SmsResult { IsSuccess = true };
-    }
-
-    private async Task<MelipayamakResponse?> SendInternalAsync(SmsRequest request)
-    {
         var values = new Dictionary<string, string>
         {
             ["username"] = _options.Username,
             ["password"] = _options.Password,
-            ["to"] = request.Mobile,
+            ["to"] = message.Mobile,
             ["from"] = _options.From,
-            ["text"] = $"{request.Text};",
+            ["text"] = message.Text,
+            ["isFlash"] = "false"
+        };
+
+        return await SendRequestAsync(
+            _options.BaseUrl,
+            values,
+            cancellationToken);
+    }
+
+    public async Task<SmsResult> SendOtpAsync(
+        SmsOtp otp,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(otp);
+
+        if (string.IsNullOrWhiteSpace(_options.PatternBaseUrl))
+        {
+            throw new InvalidOperationException(
+                "SMS provider PatternBaseUrl is not configured.");
+        }
+
+        if (string.IsNullOrWhiteSpace(_options.BodyId))
+        {
+            throw new InvalidOperationException(
+                "SMS provider BodyId is not configured.");
+        }
+
+        var values = new Dictionary<string, string>
+        {
+            ["username"] = _options.Username,
+            ["password"] = _options.Password,
+            ["to"] = otp.Mobile,
+            ["text"] = $"{otp.Code};",
             ["bodyId"] = _options.BodyId
         };
 
-        using var content = new FormUrlEncodedContent(values);
-        var httpResponse = await _httpClient.PostAsync(_baseUrl, content);
-        if (!httpResponse.IsSuccessStatusCode)
-            return null;
+        return await SendRequestAsync(
+            _options.PatternBaseUrl,
+            values,
+            cancellationToken);
+    }
 
-        var json = await httpResponse.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<MelipayamakResponse>(json);
+    private async Task<SmsResult> SendRequestAsync(
+        string url,
+        Dictionary<string, string> values,
+        CancellationToken cancellationToken)
+    {
+        using var content = new FormUrlEncodedContent(values);
+
+        using var response = await _httpClient.PostAsync(
+            url,
+            content,
+            cancellationToken);
+
+        var responseBody = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return SmsResult.Failure(
+                $"SMS provider returned HTTP {(int)response.StatusCode}.",
+                response.StatusCode.ToString());
+        }
+
+        MelipayamakResponse? result;
+
+        try
+        {
+            result = JsonSerializer.Deserialize<MelipayamakResponse>(
+                responseBody,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+        }
+        catch (JsonException ex)
+        {
+            return SmsResult.Failure(
+                $"Invalid response from SMS provider: {ex.Message}",
+                "InvalidProviderResponse");
+        }
+
+        if (result is null)
+        {
+            return SmsResult.Failure(
+                "SMS provider returned an empty response.",
+                "EmptyProviderResponse");
+        }
+
+        return result.RetStatus == 1
+            ? SmsResult.Success(result.Value)
+            : SmsResult.Failure(
+                result.Value ?? "SMS provider rejected the request.",
+                result.RetStatus.ToString());
     }
 
     private sealed class MelipayamakResponse
     {
         public int RetStatus { get; set; }
+
         public string? Value { get; set; }
     }
 }

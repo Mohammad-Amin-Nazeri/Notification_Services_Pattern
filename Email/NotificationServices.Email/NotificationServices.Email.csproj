@@ -7,11 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="11.0.0-preview.7.26381.103" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="11.0.0-preview.7.26381.103" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="11.0.0-preview.7.26381.103" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="11.0.0-preview.7.26381.103" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="11.0.0-preview.7.26381.103" />
+    <PackageReference Include="MailKit" Version="4.17.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
   </ItemGroup>
 
   <ItemGroup>

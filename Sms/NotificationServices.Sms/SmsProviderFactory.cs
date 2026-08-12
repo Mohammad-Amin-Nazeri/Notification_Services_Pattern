@@ -1,38 +1,44 @@
 using NotificationServices.Sms.Abstractions.Enums;
 using NotificationServices.Sms.Abstractions.Interfaces;
 using NotificationServices.Sms.Providers;
-using Microsoft.Extensions.Configuration;
 
 namespace NotificationServices.Sms;
 
-/// <summary>
-/// Resolves the <see cref="ISmsProvider"/> matching the configured
-/// <see cref="Abstractions.Models.SmsProviderOptions.ProviderType"/>.
-/// Add a new arm to the switch expression whenever a new provider is implemented
-/// (see <see cref="MelipayamakSmsProvider"/> for a reference implementation).
-/// </summary>
-public class SmsProviderFactory(
+public sealed class SmsProviderFactory(
     ISmsProviderOptionsProvider optionsProvider,
-    IHttpClientFactory httpClientFactory,
-    IConfiguration configuration) : ISmsProviderFactory
+    IHttpClientFactory httpClientFactory) : ISmsProviderFactory
 {
-    public async Task<ISmsProvider> GetProviderAsync()
+    public async Task<ISmsProvider> GetProviderAsync(
+        CancellationToken cancellationToken = default)
     {
-        var options = await optionsProvider.GetSettingAsync();
+        var options = await optionsProvider.GetSettingAsync(
+            cancellationToken);
 
-        if (!Enum.TryParse<SmsProviderType>(options.ProviderType, ignoreCase: true, out var type))
-            throw new NotSupportedException($"Unknown SMS provider type: \"{options.ProviderType}\".");
-
-        return type switch
+        if (string.IsNullOrWhiteSpace(options.ProviderType))
         {
-            SmsProviderType.Melipayamak => new MelipayamakSmsProvider(
-                options,
-                httpClientFactory.CreateClient(nameof(MelipayamakSmsProvider)),
-                configuration["SmsProvider:Melipayamak:BaseUrl"]
-                    ?? throw new InvalidOperationException(
-                        "Configuration key \"SmsProvider:Melipayamak:BaseUrl\" is missing.")),
+            throw new InvalidOperationException(
+                "SMS provider type is not configured.");
+        }
 
-            _ => throw new NotSupportedException($"SMS provider \"{type}\" is not implemented yet.")
+        if (!Enum.TryParse<SmsProviderType>(
+                options.ProviderType,
+                ignoreCase: true,
+                out var providerType))
+        {
+            throw new NotSupportedException(
+                $"Unknown SMS provider type: '{options.ProviderType}'.");
+        }
+
+        return providerType switch
+        {
+            SmsProviderType.Melipayamak =>
+                new MelipayamakSmsProvider(
+                    options,
+                    httpClientFactory.CreateClient(
+                        nameof(MelipayamakSmsProvider))),
+
+            _ => throw new NotSupportedException(
+                $"SMS provider '{providerType}' is not implemented.")
         };
     }
 }

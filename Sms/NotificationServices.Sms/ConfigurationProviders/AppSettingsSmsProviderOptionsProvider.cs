@@ -1,55 +1,68 @@
+using Microsoft.Extensions.Configuration;
 using NotificationServices.Sms.Abstractions.Interfaces;
 using NotificationServices.Sms.Abstractions.Models;
-using Microsoft.Extensions.Configuration;
 
 namespace NotificationServices.Sms.ConfigurationProviders;
 
-/// <summary>
-/// Default <see cref="ISmsProviderOptionsProvider"/>: reads <see cref="SmsProviderOptions"/>
-/// from the "SmsProvider" section of the app configuration (appsettings.json, environment
-/// variables, Azure App Configuration, ...) via <see cref="IConfiguration"/>.
-///
-/// If you later need the settings to come from a database instead, write your own
-/// implementation of <see cref="ISmsProviderOptionsProvider"/> (for example, one that reads
-/// from an EF Core DbContext) and register it via the generic
-/// <c>AddSmsService&lt;TOptionsProvider&gt;()</c> overload - that is the only change needed.
-/// </summary>
-/// <example>
-/// appsettings.json:
-/// <code>
-/// {
-///   "SmsProvider": {
-///     "ProviderType": "Melipayamak",
-///     "Username": "...",
-///     "Password": "...",
-///     "From": "50004001",
-///     "BodyId": "...",
-///     "Melipayamak": { "BaseUrl": "https://rest.payamak-panel.com/api/SendSMS/BaseServiceNumber" }
-///   }
-/// }
-/// </code>
-/// </example>
-public class AppSettingsSmsProviderOptionsProvider(IConfiguration configuration) : ISmsProviderOptionsProvider
+public sealed class AppSettingsSmsProviderOptionsProvider(
+    IConfiguration configuration) : ISmsProviderOptionsProvider
 {
     private const string SectionName = "SmsProvider";
 
-    public Task<SmsProviderOptions> GetSettingAsync()
+    public Task<SmsProviderOptions> GetSettingAsync(
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var section = configuration.GetSection(SectionName);
+
         if (!section.Exists())
         {
             throw new InvalidOperationException(
-                $"Configuration section \"{SectionName}\" was not found. " +
-                "Add it to appsettings.json, or register a different ISmsProviderOptionsProvider " +
-                "(e.g. a database-backed one) via AddSmsService<TOptionsProvider>().");
+                $"Configuration section '{SectionName}' was not found.");
         }
 
-        var options = section.Get<SmsProviderOptions>()
-            ?? throw new InvalidOperationException($"Could not bind configuration section \"{SectionName}\".");
+        var options = section.Get<SmsProviderOptions>();
 
-        // Kept async (Task.FromResult) on purpose: it preserves the exact same
-        // ISmsProviderOptionsProvider contract used by database-backed providers,
-        // so callers never need to know whether the source is sync or async.
+        if (options is null)
+        {
+            throw new InvalidOperationException(
+                $"Could not bind configuration section '{SectionName}'.");
+        }
+
+        Validate(options);
+
         return Task.FromResult(options);
+    }
+
+    private static void Validate(SmsProviderOptions options)
+    {
+        if (string.IsNullOrWhiteSpace(options.ProviderType))
+            throw new InvalidOperationException(
+                "SmsProvider:ProviderType is required.");
+
+        if (string.IsNullOrWhiteSpace(options.Username))
+            throw new InvalidOperationException(
+                "SmsProvider:Username is required.");
+
+        if (string.IsNullOrWhiteSpace(options.Password))
+            throw new InvalidOperationException(
+                "SmsProvider:Password is required.");
+
+        if (string.IsNullOrWhiteSpace(options.From))
+            throw new InvalidOperationException(
+                "SmsProvider:From is required.");
+
+        if (string.IsNullOrWhiteSpace(options.BaseUrl))
+            throw new InvalidOperationException(
+                "SmsProvider:BaseUrl is required.");
+
+        if (string.IsNullOrWhiteSpace(options.PatternBaseUrl))
+            throw new InvalidOperationException(
+                "SmsProvider:PatternBaseUrl is required.");
+
+        if (string.IsNullOrWhiteSpace(options.BodyId))
+            throw new InvalidOperationException(
+                "SmsProvider:BodyId is required.");
     }
 }

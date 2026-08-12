@@ -1,7 +1,31 @@
 namespace NotificationServices.Sms.Abstractions.Models;
 
-public class SmsResult
+public sealed class SmsResult
 {
-    public bool IsSuccess { get; set; }
-    public string? Message { get; set; }
+    public bool IsSuccess { get; init; }
+
+    public string? Message { get; init; }
+
+    public string? ErrorCode { get; init; }
+
+    public static SmsResult Success(string? message = null)
+    {
+        return new SmsResult
+        {
+            IsSuccess = true,
+            Message = message
+        };
+    }
+
+    public static SmsResult Failure(
+        string message,
+        string? errorCode = null)
+    {
+        return new SmsResult
+        {
+            IsSuccess = false,
+            Message = message,
+            ErrorCode = errorCode
+        };
+    }
 }
