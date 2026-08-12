@@ -3,6 +3,9 @@
     <Project Path="samples/NotificationServices.Sample/NotificationServices.Sample.csproj" />
   </Folder>
   <Folder Name="/src/" />
+  <Folder Name="/src/NotificationServices/">
+    <Project Path="src/NotificationServices/NotificationServices.csproj" />
+  </Folder>
   <Folder Name="/src/Email/">
     <Project Path="Email/NotificationServices.Email.Abstractions/NotificationServices.Email.Abstractions.csproj" />
     <Project Path="Email/NotificationServices.Email/NotificationServices.Email.csproj" />

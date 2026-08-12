@@ -1,19 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-
-    <PackageId>NotificationServices.Email</PackageId>
-    <Version>1.0.0</Version>
-    <Authors>Mohammad Amin Nazeri</Authors>
-    <Description>Reusable and extensible Email notification service for .NET applications with OTP support, dependency injection, and configurable options.</Description>
-    <PackageTags>dotnet;csharp;email;notification;otp;mailkit;dependency-injection</PackageTags>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/Mohammad-Amin-Nazeri/Notification_Services_Pattern</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,9 +16,4 @@
   <ItemGroup>
     <ProjectReference Include="..\NotificationServices.Email.Abstractions\NotificationServices.Email.Abstractions.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\..\README.md" Pack="true" PackagePath="README.md" />
-  </ItemGroup>
-
 </Project>

@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - 'refactor/**'
 
   pull_request:
     branches:
@@ -11,7 +12,6 @@ on:
 
 jobs:
   build-and-test:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -32,9 +32,24 @@ jobs:
       - name: Run tests with coverage
         run: dotnet test NotificationServices.slnx --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory ./TestResults
 
+      - name: Pack unified package
+        run: dotnet pack src/NotificationServices/NotificationServices.csproj --configuration Release --no-build --output ./artifacts
+
+      - name: Verify package output
+        shell: bash
+        run: |
+          test -f ./artifacts/NotificationServices.2.0.0.nupkg
+          echo "Unified package created successfully."
+
       - name: Upload coverage results
         uses: actions/upload-artifact@v4
         with:
           name: code-coverage
           path: TestResults/**/coverage.cobertura.xml
           if-no-files-found: error
+
+      - name: Upload NuGet package
+        uses: actions/upload-artifact@v4
+        with:
+          name: NotificationServices-package
+          path: artifacts/NotificationServices.2.0.0.nupkg
