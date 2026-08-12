@@ -57,7 +57,7 @@ This project is intentionally built to be useful in real applications, not just 
 ### Simple for the consumer
 
 ```bash
-dotnet add package NotificationServices
+dotnet add package NotificationServices.Kit
 ```
 
 ```csharp
@@ -85,13 +85,13 @@ SMS gateways are isolated behind provider abstractions. Adding a new gateway sho
 ## 📦 Installation
 
 ```bash
-dotnet add package NotificationServices
+dotnet add package NotificationServices.Kit
 ```
 
 Or from Visual Studio Package Manager Console:
 
 ```powershell
-Install-Package NotificationServices
+Install-Package NotificationServices.Kit
 ```
 
 The intended consumer experience is a **single package**. Consumers do not need to install separate Email and SMS packages.
@@ -381,7 +381,7 @@ Workflow:
 The consumer-facing package is:
 
 ```text
-NotificationServices
+NotificationServices.Kit
 ```
 
 Build locally:
@@ -442,7 +442,7 @@ You can also reach the developer through the contact links above to discuss a fe
 
 ## ⭐ Support the Project
 
-If `NotificationServices` is useful to you, please consider giving the repository a **⭐ Star**.
+If `NotificationServices.Kit` is useful to you, please consider giving the repository a **⭐ Star**.
 
 A Star helps more developers discover the project and supports continued development.
 
@@ -496,7 +496,7 @@ MIT License. See [LICENSE](LICENSE).
 ### ساده برای استفاده
 
 ```bash
-dotnet add package NotificationServices
+dotnet add package NotificationServices.Kit
 ```
 
 ```csharp
@@ -524,13 +524,13 @@ appsettings / Database / Redis / API / Secrets / منبع سفارشی
 ## 📦 نصب
 
 ```bash
-dotnet add package NotificationServices
+dotnet add package NotificationServices.Kit
 ```
 
 یا:
 
 ```powershell
-Install-Package NotificationServices
+Install-Package NotificationServices.Kit
 ```
 
 هدف پروژه این است که کاربر **یک Package** نصب کند و Email و SMS را در اختیار داشته باشد.
@@ -807,6 +807,12 @@ GitHub Actions این مراحل را بررسی می‌کند:
 Restore → Build → Tests + Coverage → Pack → Verify Package → Upload Artifacts
 ```
 
+Workflow:
+
+```text
+.github/workflows/ci.yml
+```
+
 ---
 
 ## 📦 ساخت Package
@@ -814,7 +820,7 @@ Restore → Build → Tests + Coverage → Pack → Verify Package → Upload Ar
 Package اصلی:
 
 ```text
-NotificationServices
+NotificationServices.Kit
 ```
 
 ```bash
@@ -874,7 +880,7 @@ dotnet pack src/NotificationServices/NotificationServices.csproj -c Release
 
 ## ⭐ حمایت از پروژه
 
-اگر `NotificationServices` برایتان مفید است، لطفاً Repository را ⭐ **Star** کنید.
+اگر `NotificationServices.Kit` برایتان مفید است، لطفاً Repository را ⭐ **Star** کنید.
 
 Star کردن پروژه باعث می‌شود افراد بیشتری آن را ببینند و به ادامه توسعه و نگهداری آن کمک می‌کند.
 
