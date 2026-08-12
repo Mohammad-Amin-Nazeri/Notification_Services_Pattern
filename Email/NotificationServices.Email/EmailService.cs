@@ -3,7 +3,6 @@ using MailKit.Security;
 using MimeKit;
 using NotificationServices.Email.Abstractions.Interfaces;
 using NotificationServices.Email.Abstractions.Models;
-using System.Net.Mail;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace NotificationServices.Email;

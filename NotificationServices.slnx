@@ -11,4 +11,7 @@
     <Project Path="Sms/NotificationServices.Sms.Abstractions/NotificationServices.Sms.Abstractions.csproj" />
     <Project Path="Sms/NotificationServices.Sms/NotificationServices.Sms.csproj" />
   </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/NotificationServices.Tests/NotificationServices.Tests.csproj" />
+  </Folder>
 </Solution>
