@@ -3,7 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <PackageId>NotificationServices</PackageId>
+    <PackageId>NotificationServices.Kit</PackageId>
     <Version>2.0.0</Version>
     <Authors>Mohammad Amin Nazeri</Authors>
     <Description>Unified Email and SMS notification services for .NET with provider-independent configuration.</Description>
