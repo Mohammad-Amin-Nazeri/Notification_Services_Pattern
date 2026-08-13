@@ -12,7 +12,6 @@
     <RepositoryUrl>https://github.com/Mohammad-Amin-Nazeri/Notification_Services_Pattern</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeProjectReferencesInPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,11 +29,15 @@
 
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="README.md" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="LICENSE" />
   </ItemGroup>
 
-  <Target Name="IncludeProjectReferencesInPackage">
+  <Target Name="IncludeNotificationAssembliesInPackage" BeforeTargets="Pack">
     <ItemGroup>
-      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.ReferenceSourceTarget)' == 'ProjectReference'" />
+      <BuildOutputInPackage Include="$(MSBuildProjectDirectory)\bin\$(Configuration)\$(TargetFramework)\NotificationServices.Email.dll" />
+      <BuildOutputInPackage Include="$(MSBuildProjectDirectory)\bin\$(Configuration)\$(TargetFramework)\NotificationServices.Email.Abstractions.dll" />
+      <BuildOutputInPackage Include="$(MSBuildProjectDirectory)\bin\$(Configuration)\$(TargetFramework)\NotificationServices.Sms.dll" />
+      <BuildOutputInPackage Include="$(MSBuildProjectDirectory)\bin\$(Configuration)\$(TargetFramework)\NotificationServices.Sms.Abstractions.dll" />
     </ItemGroup>
   </Target>
 </Project>
