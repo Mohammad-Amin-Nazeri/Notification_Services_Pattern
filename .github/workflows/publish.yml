@@ -35,9 +35,9 @@ jobs:
       - name: Pack package
         run: |
           dotnet pack src/NotificationServices/NotificationServices.csproj \
-          --configuration Release \
-          --no-build \
-          --output ./artifacts
+            --configuration Release \
+            --no-build \
+            --output ./artifacts
 
       - name: Verify package
         shell: bash
@@ -49,12 +49,19 @@ jobs:
             exit 1
           fi
 
-          echo "Package found:"
-          echo "$PACKAGE"
+          echo "Package found: $PACKAGE"
+
+      - name: NuGet login
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: Mohammad-Amin-Nazeri
 
       - name: Publish to NuGet
         run: |
-          dotnet nuget push \
-            "./artifacts/*.nupkg" \
+          PACKAGE=$(find ./artifacts -name "*.nupkg" | head -n 1)
+
+          dotnet nuget push "$PACKAGE" \
+            --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
             --source "https://api.nuget.org/v3/index.json" \
             --skip-duplicate
