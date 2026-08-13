@@ -33,17 +33,28 @@ jobs:
         run: dotnet test NotificationServices.slnx --configuration Release --no-build
 
       - name: Pack package
-        run: dotnet pack src/NotificationServices/NotificationServices.csproj --configuration Release --no-build --output ./artifacts
+        run: |
+          dotnet pack src/NotificationServices/NotificationServices.csproj \
+          --configuration Release \
+          --no-build \
+          --output ./artifacts
 
       - name: Verify package
         shell: bash
         run: |
-          test -f ./artifacts/NotificationServices.Kit.2.0.1.nupkg
-          echo "NotificationServices.Kit package created successfully."
+          PACKAGE=$(find ./artifacts -name "*.nupkg" | head -n 1)
+
+          if [ -z "$PACKAGE" ]; then
+            echo "NuGet package not found"
+            exit 1
+          fi
+
+          echo "Package found:"
+          echo "$PACKAGE"
 
       - name: Publish to NuGet
         run: |
           dotnet nuget push \
-            "./artifacts/NotificationServices.Kit.2.0.1.nupkg" \
+            "./artifacts/*.nupkg" \
             --source "https://api.nuget.org/v3/index.json" \
             --skip-duplicate
