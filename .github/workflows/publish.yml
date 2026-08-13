@@ -13,7 +13,6 @@ jobs:
   publish:
     name: Publish NotificationServices.Kit
     runs-on: ubuntu-latest
-
     environment:
       name: production
 
@@ -52,15 +51,10 @@ jobs:
             exit 1
           fi
 
-          echo "Package found: $PACKAGE"
-
-      - name: NuGet Trusted Publishing Login
-        uses: NuGet/login@v1
+          echo "Package found:"
+          echo "$PACKAGE"
 
       - name: Publish to NuGet
-        run: |
-          PACKAGE=$(find ./artifacts -name "*.nupkg" | head -n 1)
-
-          dotnet nuget push "$PACKAGE" \
-            --source "https://api.nuget.org/v3/index.json" \
-            --skip-duplicate
+        uses: NuGet/push@v1
+        with:
+          packages: './artifacts/*.nupkg'
