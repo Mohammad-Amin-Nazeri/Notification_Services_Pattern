@@ -1,19 +1,21 @@
-name: Publish NuGet
+name: Publish NuGet Package
 
 on:
   release:
-    types: [published]
+    types:
+      - published
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   publish:
+    name: Publish NotificationServices.Kit
     runs-on: ubuntu-latest
 
-    permissions:
-      id-token: write
-      contents: read
-
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup .NET
@@ -21,17 +23,27 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Restore
+      - name: Restore dependencies
         run: dotnet restore NotificationServices.slnx
 
       - name: Build
-        run: dotnet build NotificationServices.slnx -c Release --no-restore
+        run: dotnet build NotificationServices.slnx --configuration Release --no-restore
 
-      - name: Test
-        run: dotnet test NotificationServices.slnx -c Release --no-build
+      - name: Run tests
+        run: dotnet test NotificationServices.slnx --configuration Release --no-build
 
-      - name: Pack
-        run: dotnet pack src/NotificationServices/NotificationServices.csproj -c Release --no-build --output ./artifacts
+      - name: Pack package
+        run: dotnet pack src/NotificationServices/NotificationServices.csproj --configuration Release --no-build --output ./artifacts
+
+      - name: Verify package
+        shell: bash
+        run: |
+          test -f ./artifacts/NotificationServices.Kit.2.0.1.nupkg
+          echo "NotificationServices.Kit package created successfully."
 
       - name: Publish to NuGet
-        run: dotnet nuget push "./artifacts/NotificationServices.Kit.2.0.1.nupkg" --source "https://api.nuget.org/v3/index.json"
+        run: |
+          dotnet nuget push \
+            "./artifacts/NotificationServices.Kit.2.0.1.nupkg" \
+            --source "https://api.nuget.org/v3/index.json" \
+            --skip-duplicate
