@@ -32,12 +32,10 @@
     <None Include="..\..\LICENSE" Pack="true" PackagePath="LICENSE" />
   </ItemGroup>
 
-  <Target Name="IncludeNotificationAssembliesInPackage" BeforeTargets="Pack">
-    <ItemGroup>
-      <BuildOutputInPackage Include="$(MSBuildProjectDirectory)\bin\$(Configuration)\$(TargetFramework)\NotificationServices.Email.dll" />
-      <BuildOutputInPackage Include="$(MSBuildProjectDirectory)\bin\$(Configuration)\$(TargetFramework)\NotificationServices.Email.Abstractions.dll" />
-      <BuildOutputInPackage Include="$(MSBuildProjectDirectory)\bin\$(Configuration)\$(TargetFramework)\NotificationServices.Sms.dll" />
-      <BuildOutputInPackage Include="$(MSBuildProjectDirectory)\bin\$(Configuration)\$(TargetFramework)\NotificationServices.Sms.Abstractions.dll" />
-    </ItemGroup>
-  </Target>
+  <ItemGroup>
+    <None Include="$(OutputPath)NotificationServices.Email.dll" Pack="true" PackagePath="lib/$(TargetFramework)/NotificationServices.Email.dll" />
+    <None Include="$(OutputPath)NotificationServices.Email.Abstractions.dll" Pack="true" PackagePath="lib/$(TargetFramework)/NotificationServices.Email.Abstractions.dll" />
+    <None Include="$(OutputPath)NotificationServices.Sms.dll" Pack="true" PackagePath="lib/$(TargetFramework)/NotificationServices.Sms.dll" />
+    <None Include="$(OutputPath)NotificationServices.Sms.Abstractions.dll" Pack="true" PackagePath="lib/$(TargetFramework)/NotificationServices.Sms.Abstractions.dll" />
+  </ItemGroup>
 </Project>
