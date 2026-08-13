@@ -13,26 +13,33 @@ jobs:
   publish:
     name: Publish NotificationServices.Kit
     runs-on: ubuntu-latest
+
     environment:
       name: production
 
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v4
+
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
+
       - name: Restore dependencies
         run: dotnet restore NotificationServices.slnx
+
 
       - name: Build
         run: dotnet build NotificationServices.slnx --configuration Release --no-restore
 
+
       - name: Run tests
         run: dotnet test NotificationServices.slnx --configuration Release --no-build
+
 
       - name: Pack package
         run: |
@@ -40,6 +47,7 @@ jobs:
             --configuration Release \
             --no-build \
             --output ./artifacts
+
 
       - name: Verify package
         shell: bash
@@ -54,7 +62,19 @@ jobs:
           echo "Package found:"
           echo "$PACKAGE"
 
-      - name: Publish to NuGet
-        uses: NuGet/push@v1
+
+      - name: NuGet login (OIDC)
+        id: login
+        uses: NuGet/login@v1
         with:
-          packages: './artifacts/*.nupkg'
+          user: Mohammad-Amin-Nazeri
+
+
+      - name: Publish to NuGet
+        run: |
+          PACKAGE=$(find ./artifacts -name "*.nupkg" | head -n 1)
+
+          dotnet nuget push "$PACKAGE" \
+            --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
+            --source "https://api.nuget.org/v3/index.json" \
+            --skip-duplicate
