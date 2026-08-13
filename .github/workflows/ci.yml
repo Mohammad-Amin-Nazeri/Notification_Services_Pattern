@@ -35,11 +35,17 @@ jobs:
       - name: Pack unified package
         run: dotnet pack src/NotificationServices/NotificationServices.csproj --configuration Release --no-build --output ./artifacts
 
-      - name: Verify package output
+      - name: Verify unified package contents
         shell: bash
         run: |
-          test -f ./artifacts/NotificationServices.2.0.0.nupkg
-          echo "Unified package created successfully."
+          PACKAGE="./artifacts/NotificationServices.Kit.2.0.1.nupkg"
+          test -f "$PACKAGE"
+          unzip -l "$PACKAGE" | grep -q 'lib/net10.0/NotificationServices.dll'
+          unzip -l "$PACKAGE" | grep -q 'lib/net10.0/NotificationServices.Email.dll'
+          unzip -l "$PACKAGE" | grep -q 'lib/net10.0/NotificationServices.Email.Abstractions.dll'
+          unzip -l "$PACKAGE" | grep -q 'lib/net10.0/NotificationServices.Sms.dll'
+          unzip -l "$PACKAGE" | grep -q 'lib/net10.0/NotificationServices.Sms.Abstractions.dll'
+          echo "Unified package and consumer assemblies verified successfully."
 
       - name: Upload coverage results
         uses: actions/upload-artifact@v4
@@ -51,5 +57,5 @@ jobs:
       - name: Upload NuGet package
         uses: actions/upload-artifact@v4
         with:
-          name: NotificationServices-package
-          path: artifacts/NotificationServices.2.0.0.nupkg
+          name: NotificationServices-Kit-package
+          path: artifacts/NotificationServices.Kit.2.0.1.nupkg
