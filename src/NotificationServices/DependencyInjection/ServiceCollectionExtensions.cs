@@ -46,6 +46,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEmailProviderOptionsProvider, EmailOptionsAdapter>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<ISmsProviderOptionsProvider, SmsOptionsAdapter>();
+        services.AddSmsProvider<MelipayamakSmsProvider>("Melipayamak");
         services.AddScoped<ISmsProviderFactory, SmsProviderFactory>();
         services.AddScoped<ISmsService, SmsService>();
         return services;
