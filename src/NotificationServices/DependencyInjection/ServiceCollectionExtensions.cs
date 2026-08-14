@@ -6,6 +6,7 @@ using NotificationServices.Email.DependencyInjection;
 using NotificationServices.Sms;
 using NotificationServices.Sms.Abstractions.Interfaces;
 using NotificationServices.Sms.DependencyInjection;
+using NotificationServices.Sms.Providers;
 
 namespace NotificationServices.DependencyInjection;
 
@@ -38,6 +39,10 @@ public static class ServiceCollectionExtensions
         IServiceCollection services)
     {
         services.AddHttpClient();
+        services
+            .AddHttpClient(nameof(MelipayamakSmsProvider))
+            .AddStandardResilienceHandler();
+
         services.AddScoped<IEmailProviderOptionsProvider, EmailOptionsAdapter>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<ISmsProviderOptionsProvider, SmsOptionsAdapter>();
