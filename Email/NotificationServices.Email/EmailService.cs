@@ -3,6 +3,7 @@ using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MimeKit;
+using NotificationServices.Configuration;
 using NotificationServices.Email.Abstractions.Interfaces;
 using NotificationServices.Email.Abstractions.Models;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
@@ -11,10 +12,12 @@ namespace NotificationServices.Email;
 
 public sealed class EmailService(
     IEmailProviderOptionsProvider optionsProvider,
+    INotificationCapabilitiesProvider capabilitiesProvider,
     ILogger<EmailService>? logger = null) : IEmailService
 {
     private readonly ILogger<EmailService> _logger = logger ?? NullLogger<EmailService>.Instance;
     private const string DefaultOtpSubject = "Verification Code";
+    private const string CapabilityDisabledCode = "email.disabled";
 
     public async Task<EmailResult> SendMessageAsync(
         EmailMessage message,
@@ -22,6 +25,10 @@ public sealed class EmailService(
     {
         ArgumentNullException.ThrowIfNull(message);
         ValidateMessage(message);
+
+        if (!await IsEnabledAsync(cancellationToken))
+            return EmailResult.Failure("Email notifications are disabled for the current context.", CapabilityDisabledCode);
+
         var options = await optionsProvider.GetSettingAsync(cancellationToken);
 
         try
@@ -49,6 +56,10 @@ public sealed class EmailService(
     {
         ArgumentNullException.ThrowIfNull(otp);
         ValidateOtp(otp);
+
+        if (!await IsEnabledAsync(cancellationToken))
+            return EmailResult.Failure("Email notifications are disabled for the current context.", CapabilityDisabledCode);
+
         var options = await optionsProvider.GetSettingAsync(cancellationToken);
 
         try
@@ -71,6 +82,9 @@ public sealed class EmailService(
             return EmailResult.Failure(ex.Message, ex.GetType().Name);
         }
     }
+
+    private async ValueTask<bool> IsEnabledAsync(CancellationToken cancellationToken)
+        => (await capabilitiesProvider.GetCapabilitiesAsync(cancellationToken)).EmailEnabled;
 
     private static async Task SendAsync(
         EmailProviderOptions options,
