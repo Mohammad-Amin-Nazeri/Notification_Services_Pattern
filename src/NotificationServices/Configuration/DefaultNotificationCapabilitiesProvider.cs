@@ -1,3 +1,5 @@
+using NotificationServices.Abstractions;
+
 namespace NotificationServices.Configuration;
 
 /// <summary>
