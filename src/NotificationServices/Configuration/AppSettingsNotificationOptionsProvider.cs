@@ -22,6 +22,7 @@ public sealed class AppSettingsNotificationOptionsProvider : INotificationOption
             Sms = _configuration.GetSection("NotificationServices:Sms").Get<SmsOptions>() ?? new()
         };
 
+        NotificationOptionsValidator.Validate(options);
         return ValueTask.FromResult(options);
     }
 }
