@@ -19,7 +19,8 @@ public sealed class SmsProviderRegistryTests
 
         var resolved = await factory.GetProviderAsync();
 
-        Assert.IsType<FakeSmsProvider>(resolved);
+        var fake = Assert.IsType<FakeSmsProvider>(resolved);
+        Assert.Equal("Fake", fake.Options.ProviderType);
     }
 
     [Fact]
@@ -58,8 +59,15 @@ public sealed class SmsProviderRegistryTests
             });
     }
 
-    private sealed class FakeSmsProvider(SmsProviderOptions options) : ISmsProvider
+    private sealed class FakeSmsProvider : ISmsProvider
     {
+        public FakeSmsProvider(SmsProviderOptions options)
+        {
+            Options = options;
+        }
+
+        public SmsProviderOptions Options { get; }
+
         public Task<SmsResult> SendMessageAsync(
             SmsMessage message,
             CancellationToken cancellationToken = default) =>
