@@ -1,6 +1,7 @@
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using MimeKit;
 using NotificationServices.Email.Abstractions.Interfaces;
 using NotificationServices.Email.Abstractions.Models;
@@ -10,8 +11,9 @@ namespace NotificationServices.Email;
 
 public sealed class EmailService(
     IEmailProviderOptionsProvider optionsProvider,
-    ILogger<EmailService> logger) : IEmailService
+    ILogger<EmailService>? logger = null) : IEmailService
 {
+    private readonly ILogger<EmailService> _logger = logger ?? NullLogger<EmailService>.Instance;
     private const string DefaultOtpSubject = "Verification Code";
 
     public async Task<EmailResult> SendMessageAsync(
@@ -19,27 +21,24 @@ public sealed class EmailService(
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(message);
-
         ValidateMessage(message);
-
         var options = await optionsProvider.GetSettingAsync(cancellationToken);
 
         try
         {
             var email = BuildMessage(options, message.To, message.Subject, message.Body, message.IsHtml);
             await SendAsync(options, email, cancellationToken);
-
-            logger.LogInformation("Email notification sent successfully.");
+            _logger.LogInformation("Email notification sent successfully.");
             return EmailResult.Success();
         }
         catch (OperationCanceledException)
         {
-            logger.LogDebug("Email notification was cancelled.");
+            _logger.LogDebug("Email notification was cancelled.");
             throw;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Email notification failed.");
+            _logger.LogError(ex, "Email notification failed.");
             return EmailResult.Failure(ex.Message, ex.GetType().Name);
         }
     }
@@ -49,9 +48,7 @@ public sealed class EmailService(
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(otp);
-
         ValidateOtp(otp);
-
         var options = await optionsProvider.GetSettingAsync(cancellationToken);
 
         try
@@ -59,20 +56,18 @@ public sealed class EmailService(
             var subject = string.IsNullOrWhiteSpace(otp.Subject) ? DefaultOtpSubject : otp.Subject;
             var body = BuildOtpBody(otp.Code);
             var email = BuildMessage(options, otp.To, subject, body, isHtml: true);
-
             await SendAsync(options, email, cancellationToken);
-
-            logger.LogInformation("Email OTP notification sent successfully.");
+            _logger.LogInformation("Email OTP notification sent successfully.");
             return EmailResult.Success();
         }
         catch (OperationCanceledException)
         {
-            logger.LogDebug("Email OTP notification was cancelled.");
+            _logger.LogDebug("Email OTP notification was cancelled.");
             throw;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Email OTP notification failed.");
+            _logger.LogError(ex, "Email OTP notification failed.");
             return EmailResult.Failure(ex.Message, ex.GetType().Name);
         }
     }
@@ -84,13 +79,10 @@ public sealed class EmailService(
     {
         using var client = new SmtpClient();
         var secureSocketOptions = GetSecureSocketOptions(options);
-
         await client.ConnectAsync(options.Host, options.Port, secureSocketOptions, cancellationToken);
 
         if (!string.IsNullOrWhiteSpace(options.Username))
-        {
             await client.AuthenticateAsync(options.Username, options.Password, cancellationToken);
-        }
 
         await client.SendAsync(message, cancellationToken);
         await client.DisconnectAsync(true, cancellationToken);
@@ -119,7 +111,6 @@ public sealed class EmailService(
     {
         if (!options.EnableSsl)
             return SecureSocketOptions.None;
-
         return options.Port == 465 ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls;
     }
 
@@ -151,10 +142,8 @@ public sealed class EmailService(
     {
         if (string.IsNullOrWhiteSpace(message.To))
             throw new ArgumentException("Email recipient is required.", nameof(message));
-
         if (string.IsNullOrWhiteSpace(message.Subject))
             throw new ArgumentException("Email subject is required.", nameof(message));
-
         if (string.IsNullOrWhiteSpace(message.Body))
             throw new ArgumentException("Email body is required.", nameof(message));
     }
@@ -163,7 +152,6 @@ public sealed class EmailService(
     {
         if (string.IsNullOrWhiteSpace(otp.To))
             throw new ArgumentException("Email recipient is required.", nameof(otp));
-
         if (string.IsNullOrWhiteSpace(otp.Code))
             throw new ArgumentException("OTP code is required.", nameof(otp));
     }
