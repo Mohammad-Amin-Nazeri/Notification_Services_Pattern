@@ -9,7 +9,7 @@ public sealed class SmsProviderRegistry : ISmsProviderRegistry
     private readonly IServiceProvider _serviceProvider;
     private readonly IReadOnlyDictionary<string, Type> _registrations;
 
-    internal SmsProviderRegistry(
+    public SmsProviderRegistry(
         IServiceProvider serviceProvider,
         IEnumerable<SmsProviderRegistration> registrations)
     {
