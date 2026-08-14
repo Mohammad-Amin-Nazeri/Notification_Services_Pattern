@@ -47,16 +47,9 @@ public static class ServiceCollectionExtensions
         ArgumentException.ThrowIfNullOrWhiteSpace(providerName);
 
         services.AddTransient<TProvider>();
-
-        services.AddSingleton<ISmsProviderRegistry>(serviceProvider =>
-        {
-            var registrations = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
-            {
-                [providerName] = typeof(TProvider)
-            };
-
-            return new SmsProviderRegistry(serviceProvider, registrations);
-        });
+        services.AddSingleton(
+            new SmsProviderRegistration(providerName, typeof(TProvider)));
+        services.AddSingleton<ISmsProviderRegistry, SmsProviderRegistry>();
 
         return services;
     }
