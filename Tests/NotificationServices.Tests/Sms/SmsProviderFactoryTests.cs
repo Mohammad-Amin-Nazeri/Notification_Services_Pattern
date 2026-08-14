@@ -1,4 +1,3 @@
-﻿using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NotificationServices.Sms;
 using NotificationServices.Sms.Abstractions.Interfaces;
@@ -11,31 +10,25 @@ public sealed class SmsProviderFactoryTests
     [Fact]
     public async Task GetProviderAsync_WhenProviderTypeIsUnknown_ShouldThrow()
     {
-        var optionsProvider =
-            new Mock<ISmsProviderOptionsProvider>();
+        var optionsProvider = new Mock<ISmsProviderOptionsProvider>();
+        var registry = new Mock<ISmsProviderRegistry>();
 
         optionsProvider
-            .Setup(x => x.GetSettingAsync(
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                new SmsProviderOptions
-                {
-                    ProviderType = "UnknownProvider"
-                });
+            .Setup(x => x.GetSettingAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SmsProviderOptions
+            {
+                ProviderType = "UnknownProvider"
+            });
 
-        var services = new ServiceCollection();
-
-        services.AddHttpClient();
-
-        await using var serviceProvider =
-            services.BuildServiceProvider();
-
-        var httpClientFactory =
-            serviceProvider.GetRequiredService<IHttpClientFactory>();
+        registry
+            .Setup(x => x.CreateProvider(
+                "UnknownProvider",
+                It.IsAny<SmsProviderOptions>()))
+            .Throws(new NotSupportedException("SMS provider 'UnknownProvider' is not registered."));
 
         var factory = new SmsProviderFactory(
             optionsProvider.Object,
-            httpClientFactory);
+            registry.Object);
 
         await Assert.ThrowsAsync<NotSupportedException>(
             () => factory.GetProviderAsync());
@@ -44,76 +37,67 @@ public sealed class SmsProviderFactoryTests
     [Fact]
     public async Task GetProviderAsync_WhenProviderTypeIsEmpty_ShouldThrow()
     {
-        var optionsProvider =
-            new Mock<ISmsProviderOptionsProvider>();
+        var optionsProvider = new Mock<ISmsProviderOptionsProvider>();
+        var registry = new Mock<ISmsProviderRegistry>();
 
         optionsProvider
-            .Setup(x => x.GetSettingAsync(
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                new SmsProviderOptions
-                {
-                    ProviderType = ""
-                });
-
-        var services = new ServiceCollection();
-
-        services.AddHttpClient();
-
-        await using var serviceProvider =
-            services.BuildServiceProvider();
-
-        var httpClientFactory =
-            serviceProvider.GetRequiredService<IHttpClientFactory>();
+            .Setup(x => x.GetSettingAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SmsProviderOptions
+            {
+                ProviderType = string.Empty
+            });
 
         var factory = new SmsProviderFactory(
             optionsProvider.Object,
-            httpClientFactory);
+            registry.Object);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => factory.GetProviderAsync());
+
+        registry.Verify(
+            x => x.CreateProvider(
+                It.IsAny<string>(),
+                It.IsAny<SmsProviderOptions>()),
+            Times.Never);
     }
 
     [Fact]
     public async Task GetProviderAsync_WhenProviderIsMelipayamak_ShouldReturnProvider()
     {
-        var optionsProvider =
-            new Mock<ISmsProviderOptionsProvider>();
+        var optionsProvider = new Mock<ISmsProviderOptionsProvider>();
+        var registry = new Mock<ISmsProviderRegistry>();
+        var provider = new Mock<ISmsProvider>().Object;
+
+        var options = new SmsProviderOptions
+        {
+            ProviderType = "Melipayamak",
+            Username = "username",
+            Password = "password",
+            From = "50004001",
+            BaseUrl = "https://example.com/send",
+            PatternBaseUrl = "https://example.com/pattern",
+            BodyId = "12345"
+        };
 
         optionsProvider
-            .Setup(x => x.GetSettingAsync(
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                new SmsProviderOptions
-                {
-                    ProviderType = "Melipayamak",
-                    Username = "username",
-                    Password = "password",
-                    From = "50004001",
-                    BaseUrl = "https://example.com/send",
-                    PatternBaseUrl = "https://example.com/pattern",
-                    BodyId = "12345"
-                });
+            .Setup(x => x.GetSettingAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(options);
 
-        var services = new ServiceCollection();
-
-        services.AddHttpClient();
-
-        await using var serviceProvider =
-            services.BuildServiceProvider();
-
-        var httpClientFactory =
-            serviceProvider.GetRequiredService<IHttpClientFactory>();
+        registry
+            .Setup(x => x.CreateProvider(
+                "Melipayamak",
+                options))
+            .Returns(provider);
 
         var factory = new SmsProviderFactory(
             optionsProvider.Object,
-            httpClientFactory);
+            registry.Object);
 
-        var provider =
-            await factory.GetProviderAsync();
+        var resolved = await factory.GetProviderAsync();
 
-        Assert.NotNull(provider);
-        Assert.IsAssignableFrom<ISmsProvider>(
-            provider);
+        Assert.Same(provider, resolved);
+        registry.Verify(
+            x => x.CreateProvider("Melipayamak", options),
+            Times.Once);
     }
 }
