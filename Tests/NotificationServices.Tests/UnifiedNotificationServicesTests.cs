@@ -6,6 +6,7 @@ using NotificationServices.Email.Abstractions.Interfaces;
 using NotificationServices.Options;
 using NotificationServices.Sms.Abstractions.Interfaces;
 using NotificationServices.Sms.Abstractions.Models;
+using NotificationServices.Sms.DependencyInjection;
 
 namespace NotificationServices.Tests;
 
