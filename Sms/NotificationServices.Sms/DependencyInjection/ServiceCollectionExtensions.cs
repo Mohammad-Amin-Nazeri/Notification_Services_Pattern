@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using NotificationServices.Sms.Abstractions.Interfaces;
 using NotificationServices.Sms.ConfigurationProviders;
 using NotificationServices.Sms.Providers;
@@ -49,7 +50,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<TProvider>();
         services.AddSingleton(
             new SmsProviderRegistration(providerName, typeof(TProvider)));
-        services.AddSingleton<ISmsProviderRegistry, SmsProviderRegistry>();
+        services.TryAddSingleton<ISmsProviderRegistry, SmsProviderRegistry>();
 
         return services;
     }
