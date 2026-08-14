@@ -6,12 +6,18 @@ namespace NotificationServices.Sms;
 
 public sealed class SmsProviderRegistry(
     IServiceProvider serviceProvider,
-    IReadOnlyDictionary<string, Type> registrations) : ISmsProviderRegistry
+    IEnumerable<SmsProviderRegistration> registrations) : ISmsProviderRegistry
 {
+    private readonly IReadOnlyDictionary<string, Type> _registrations =
+        registrations.ToDictionary(
+            registration => registration.Name,
+            registration => registration.ProviderType,
+            StringComparer.OrdinalIgnoreCase);
+
     public bool Contains(string providerName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(providerName);
-        return registrations.ContainsKey(providerName);
+        return _registrations.ContainsKey(providerName);
     }
 
     public ISmsProvider CreateProvider(
@@ -21,7 +27,7 @@ public sealed class SmsProviderRegistry(
         ArgumentException.ThrowIfNullOrWhiteSpace(providerName);
         ArgumentNullException.ThrowIfNull(options);
 
-        if (!registrations.TryGetValue(providerName, out var providerType))
+        if (!_registrations.TryGetValue(providerName, out var providerType))
         {
             throw new NotSupportedException(
                 $"SMS provider '{providerName}' is not registered.");
