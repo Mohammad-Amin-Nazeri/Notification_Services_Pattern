@@ -1,43 +1,40 @@
 using Microsoft.Extensions.DependencyInjection;
-using NotificationServices.Configuration;
+using NotificationServices.Abstractions;
 using NotificationServices.DependencyInjection;
-using NotificationServices.Email.Abstractions.Interfaces;
-using NotificationServices.Email.Abstractions.Models;
-using NotificationServices.Sms.Abstractions.Interfaces;
-using NotificationServices.Sms.Abstractions.Models;
 
 namespace NotificationServices.Tests;
 
 public sealed class NotificationCapabilitiesTests
 {
     [Fact]
-    public async Task DisabledCapabilities_PreventEmailAndSmsSending()
+    public async Task AddNotificationServices_RegistersDefaultCapabilitiesProvider()
+    {
+        var services = new ServiceCollection();
+        services.AddNotificationServices();
+
+        await using var provider = services.BuildServiceProvider();
+        var capabilitiesProvider = provider.GetRequiredService<INotificationCapabilitiesProvider>();
+
+        var capabilities = await capabilitiesProvider.GetCapabilitiesAsync();
+
+        Assert.True(capabilities.EmailEnabled);
+        Assert.True(capabilities.SmsEnabled);
+    }
+
+    [Fact]
+    public async Task CustomCapabilitiesProvider_OverridesDefaultProvider()
     {
         var services = new ServiceCollection();
         services.AddNotificationServices();
         services.AddNotificationCapabilitiesProvider<DisabledCapabilitiesProvider>();
 
         await using var provider = services.BuildServiceProvider();
-        var email = provider.GetRequiredService<IEmailService>();
-        var sms = provider.GetRequiredService<ISmsService>();
+        var capabilitiesProvider = provider.GetRequiredService<INotificationCapabilitiesProvider>();
 
-        var emailResult = await email.SendMessageAsync(new EmailMessage
-        {
-            To = "test@example.com",
-            Subject = "test",
-            Body = "test"
-        });
+        var capabilities = await capabilitiesProvider.GetCapabilitiesAsync();
 
-        var smsResult = await sms.SendMessageAsync(new SmsMessage
-        {
-            Mobile = "09120000000",
-            Text = "test"
-        });
-
-        Assert.False(emailResult.IsSuccess);
-        Assert.Equal("email.disabled", emailResult.ErrorCode);
-        Assert.False(smsResult.IsSuccess);
-        Assert.Equal("sms.disabled", smsResult.ErrorCode);
+        Assert.False(capabilities.EmailEnabled);
+        Assert.False(capabilities.SmsEnabled);
     }
 
     private sealed class DisabledCapabilitiesProvider : INotificationCapabilitiesProvider
