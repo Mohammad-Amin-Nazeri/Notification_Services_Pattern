@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using NotificationServices.Sms.Abstractions.Interfaces;
 using NotificationServices.Sms.ConfigurationProviders;
+using NotificationServices.Sms.Providers;
 
 namespace NotificationServices.Sms.DependencyInjection;
 
@@ -11,12 +12,9 @@ public static class ServiceCollectionExtensions
     {
         services.AddHttpClient();
 
-        services.AddScoped<
-            ISmsProviderOptionsProvider,
-            AppSettingsSmsProviderOptionsProvider>();
-
+        services.AddScoped<ISmsProviderOptionsProvider, AppSettingsSmsProviderOptionsProvider>();
+        services.AddSmsProvider<MelipayamakSmsProvider>("Melipayamak");
         services.AddScoped<ISmsProviderFactory, SmsProviderFactory>();
-
         services.AddScoped<ISmsService, SmsService>();
 
         return services;
@@ -28,13 +26,37 @@ public static class ServiceCollectionExtensions
     {
         services.AddHttpClient();
 
-        services.AddScoped<
-            ISmsProviderOptionsProvider,
-            TOptionsProvider>();
-
+        services.AddScoped<ISmsProviderOptionsProvider, TOptionsProvider>();
+        services.AddSmsProvider<MelipayamakSmsProvider>("Melipayamak");
         services.AddScoped<ISmsProviderFactory, SmsProviderFactory>();
-
         services.AddScoped<ISmsService, SmsService>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers an SMS provider by a stable runtime key.
+    /// Provider selection remains runtime-driven, allowing a configuration provider
+    /// to select a different provider for each tenant, user, or license.
+    /// </summary>
+    public static IServiceCollection AddSmsProvider<TProvider>(
+        this IServiceCollection services,
+        string providerName)
+        where TProvider : class, ISmsProvider
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(providerName);
+
+        services.AddTransient<TProvider>();
+
+        services.AddSingleton<ISmsProviderRegistry>(serviceProvider =>
+        {
+            var registrations = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
+            {
+                [providerName] = typeof(TProvider)
+            };
+
+            return new SmsProviderRegistry(serviceProvider, registrations);
+        });
 
         return services;
     }
