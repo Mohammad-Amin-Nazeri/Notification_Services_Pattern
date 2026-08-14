@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using NotificationServices.Sms.Abstractions.Interfaces;
 using NotificationServices.Sms.Abstractions.Models;
 
@@ -14,15 +15,14 @@ public sealed class MelipayamakSmsProvider : ISmsProvider
     public MelipayamakSmsProvider(
         SmsProviderOptions options,
         HttpClient httpClient,
-        ILogger<MelipayamakSmsProvider> logger)
+        ILogger<MelipayamakSmsProvider>? logger = null)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(httpClient);
-        ArgumentNullException.ThrowIfNull(logger);
 
         _options = options;
         _httpClient = httpClient;
-        _logger = logger;
+        _logger = logger ?? NullLogger<MelipayamakSmsProvider>.Instance;
     }
 
     public async Task<SmsResult> SendMessageAsync(
@@ -77,7 +77,6 @@ public sealed class MelipayamakSmsProvider : ISmsProvider
         CancellationToken cancellationToken)
     {
         using var content = new FormUrlEncodedContent(values);
-
         using var response = await _httpClient.PostAsync(url, content, cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
 
