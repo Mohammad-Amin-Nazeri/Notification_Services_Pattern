@@ -19,6 +19,7 @@ public static class ServiceCollectionExtensions
 
         services.AddLogging();
         services.AddScoped<INotificationOptionsProvider, AppSettingsNotificationOptionsProvider>();
+        services.AddScoped<INotificationCapabilitiesProvider, DefaultNotificationCapabilitiesProvider>();
 
         return AddNotificationServicesCore(services);
     }
@@ -31,8 +32,19 @@ public static class ServiceCollectionExtensions
 
         services.AddLogging();
         services.AddScoped<INotificationOptionsProvider, TOptionsProvider>();
+        services.TryAddScoped<INotificationCapabilitiesProvider, DefaultNotificationCapabilitiesProvider>();
 
         return AddNotificationServicesCore(services);
+    }
+
+    public static IServiceCollection AddNotificationCapabilitiesProvider<TCapabilitiesProvider>(
+        this IServiceCollection services)
+        where TCapabilitiesProvider : class, INotificationCapabilitiesProvider
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddScoped<INotificationCapabilitiesProvider, TCapabilitiesProvider>();
+        return services;
     }
 
     private static IServiceCollection AddNotificationServicesCore(
