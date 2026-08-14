@@ -32,6 +32,8 @@ public sealed class UnifiedNotificationServicesTests
 
         Assert.IsType<AppSettingsNotificationOptionsProvider>(
             provider.GetRequiredService<INotificationOptionsProvider>());
+        Assert.IsType<DefaultNotificationCapabilitiesProvider>(
+            provider.GetRequiredService<INotificationCapabilitiesProvider>());
         Assert.NotNull(provider.GetRequiredService<IEmailService>());
         Assert.NotNull(provider.GetRequiredService<ISmsService>());
     }
@@ -48,6 +50,22 @@ public sealed class UnifiedNotificationServicesTests
 
         Assert.Equal("custom.smtp.local", options.Email.Host);
         Assert.Equal("Custom", options.Sms.ProviderType);
+    }
+
+    [Fact]
+    public async Task AddNotificationServices_WithCustomCapabilitiesProvider_UsesApplicationProvider()
+    {
+        var services = new ServiceCollection();
+        services.AddNotificationServices();
+        services.AddNotificationCapabilitiesProvider<TestCapabilitiesProvider>();
+
+        await using var provider = services.BuildServiceProvider();
+        var capabilities = await provider
+            .GetRequiredService<INotificationCapabilitiesProvider>()
+            .GetCapabilitiesAsync();
+
+        Assert.False(capabilities.EmailEnabled);
+        Assert.True(capabilities.SmsEnabled);
     }
 
     [Fact]
@@ -123,6 +141,17 @@ public sealed class UnifiedNotificationServicesTests
             {
                 Email = new() { Host = "custom.smtp.local" },
                 Sms = new() { ProviderType = "Custom" }
+            });
+    }
+
+    private sealed class TestCapabilitiesProvider : INotificationCapabilitiesProvider
+    {
+        public ValueTask<NotificationCapabilities> GetCapabilitiesAsync(
+            CancellationToken cancellationToken = default)
+            => ValueTask.FromResult(new NotificationCapabilities
+            {
+                EmailEnabled = false,
+                SmsEnabled = true
             });
     }
 
