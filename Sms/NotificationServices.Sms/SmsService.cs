@@ -1,15 +1,10 @@
-using NotificationServices.Configuration;
 using NotificationServices.Sms.Abstractions.Interfaces;
 using NotificationServices.Sms.Abstractions.Models;
 
 namespace NotificationServices.Sms;
 
-public sealed class SmsService(
-    ISmsProviderFactory factory,
-    INotificationCapabilitiesProvider capabilitiesProvider) : ISmsService
+public sealed class SmsService(ISmsProviderFactory factory) : ISmsService
 {
-    private const string CapabilityDisabledCode = "sms.disabled";
-
     public async Task<SmsResult> SendMessageAsync(
         SmsMessage message,
         CancellationToken cancellationToken = default)
@@ -17,11 +12,7 @@ public sealed class SmsService(
         ArgumentNullException.ThrowIfNull(message);
         ValidateMessage(message);
 
-        if (!await IsEnabledAsync(cancellationToken))
-            return SmsResult.Failure("SMS notifications are disabled for the current context.", CapabilityDisabledCode);
-
         var provider = await factory.GetProviderAsync(cancellationToken);
-
         return await provider.SendMessageAsync(message, cancellationToken);
     }
 
@@ -32,16 +23,9 @@ public sealed class SmsService(
         ArgumentNullException.ThrowIfNull(otp);
         ValidateOtp(otp);
 
-        if (!await IsEnabledAsync(cancellationToken))
-            return SmsResult.Failure("SMS notifications are disabled for the current context.", CapabilityDisabledCode);
-
         var provider = await factory.GetProviderAsync(cancellationToken);
-
         return await provider.SendOtpAsync(otp, cancellationToken);
     }
-
-    private async ValueTask<bool> IsEnabledAsync(CancellationToken cancellationToken)
-        => (await capabilitiesProvider.GetCapabilitiesAsync(cancellationToken)).SmsEnabled;
 
     private static void ValidateMessage(SmsMessage message)
     {
