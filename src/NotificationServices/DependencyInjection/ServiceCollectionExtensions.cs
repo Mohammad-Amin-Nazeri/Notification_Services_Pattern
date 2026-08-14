@@ -16,6 +16,7 @@ public static class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
+        services.AddLogging();
         services.AddScoped<INotificationOptionsProvider, AppSettingsNotificationOptionsProvider>();
 
         return AddNotificationServicesCore(services);
@@ -27,6 +28,7 @@ public static class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
+        services.AddLogging();
         services.AddScoped<INotificationOptionsProvider, TOptionsProvider>();
 
         return AddNotificationServicesCore(services);
