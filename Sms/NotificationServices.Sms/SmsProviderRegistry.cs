@@ -4,15 +4,21 @@ using NotificationServices.Sms.Abstractions.Models;
 
 namespace NotificationServices.Sms;
 
-public sealed class SmsProviderRegistry(
-    IServiceProvider serviceProvider,
-    IEnumerable<SmsProviderRegistration> registrations) : ISmsProviderRegistry
+public sealed class SmsProviderRegistry : ISmsProviderRegistry
 {
-    private readonly IReadOnlyDictionary<string, Type> _registrations =
-        registrations.ToDictionary(
+    private readonly IServiceProvider _serviceProvider;
+    private readonly IReadOnlyDictionary<string, Type> _registrations;
+
+    internal SmsProviderRegistry(
+        IServiceProvider serviceProvider,
+        IEnumerable<SmsProviderRegistration> registrations)
+    {
+        _serviceProvider = serviceProvider;
+        _registrations = registrations.ToDictionary(
             registration => registration.Name,
             registration => registration.ProviderType,
             StringComparer.OrdinalIgnoreCase);
+    }
 
     public bool Contains(string providerName)
     {
@@ -34,7 +40,7 @@ public sealed class SmsProviderRegistry(
         }
 
         var provider = ActivatorUtilities.CreateInstance(
-            serviceProvider,
+            _serviceProvider,
             providerType,
             options);
 
