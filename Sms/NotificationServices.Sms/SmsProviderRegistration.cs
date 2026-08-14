@@ -1,5 +1,5 @@
 namespace NotificationServices.Sms;
 
-internal sealed record SmsProviderRegistration(
+public sealed record SmsProviderRegistration(
     string Name,
     Type ProviderType);
