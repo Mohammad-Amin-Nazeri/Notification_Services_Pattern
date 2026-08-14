@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\NotificationServices.Abstractions\NotificationServices.Abstractions.csproj" />
     <ProjectReference Include="..\NotificationServices.Email.Abstractions\NotificationServices.Email.Abstractions.csproj" />
   </ItemGroup>
 </Project>
