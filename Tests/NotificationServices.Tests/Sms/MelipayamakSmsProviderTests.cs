@@ -44,7 +44,7 @@ public sealed class MelipayamakSmsProviderTests
     }
 
     [Fact]
-    public async Task SendOtpAsync_ShouldUsePatternEndpointAndProviderSetting()
+    public async Task SendOtpAsync_ShouldUsePatternEndpointAndDefaultProviderSetting()
     {
         HttpMethod? capturedMethod = null;
         string? capturedUrl = null;
@@ -76,6 +76,56 @@ public sealed class MelipayamakSmsProviderTests
         Assert.Contains("to=09120000000", capturedBody);
         Assert.Contains("bodyId=12345", capturedBody);
         Assert.Contains("text=123456%3B", capturedBody);
+    }
+
+    [Fact]
+    public async Task SendOtpAsync_WithTemplateKey_ShouldUseTemplateSpecificBodyId()
+    {
+        string? capturedBody = null;
+
+        var handler = new FakeHttpMessageHandler(
+            async request =>
+            {
+                capturedBody = await request.Content!.ReadAsStringAsync();
+                return CreateSuccessResponse("987654");
+            });
+
+        using var httpClient = new HttpClient(handler);
+        var options = CreateOptions();
+        options.ProviderSettings["BodyId:LoginOtp"] = "67890";
+
+        var provider = new MelipayamakSmsProvider(options, httpClient);
+
+        var result = await provider.SendOtpAsync(
+            new SmsOtp("09120000000", "123456", "LoginOtp"));
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(capturedBody);
+        Assert.Contains("bodyId=67890", capturedBody);
+        Assert.DoesNotContain("bodyId=12345", capturedBody);
+    }
+
+    [Fact]
+    public async Task SendOtpAsync_WithUnknownTemplateKey_ShouldFallbackToDefaultBodyId()
+    {
+        string? capturedBody = null;
+
+        var handler = new FakeHttpMessageHandler(
+            async request =>
+            {
+                capturedBody = await request.Content!.ReadAsStringAsync();
+                return CreateSuccessResponse("987654");
+            });
+
+        using var httpClient = new HttpClient(handler);
+        var provider = new MelipayamakSmsProvider(CreateOptions(), httpClient);
+
+        var result = await provider.SendOtpAsync(
+            new SmsOtp("09120000000", "123456", "UnknownTemplate"));
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(capturedBody);
+        Assert.Contains("bodyId=12345", capturedBody);
     }
 
     [Fact]
