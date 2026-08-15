@@ -9,7 +9,7 @@ namespace NotificationServices.Sms.Providers;
 public sealed class MelipayamakSmsProvider : ISmsProvider
 {
     private const string BodyIdSetting = "BodyId";
-    private const string TemplateSettingsPrefix = "Templates:";
+    private const string TemplateBodyIdPrefix = "BodyId:";
 
     private readonly SmsProviderOptions _options;
     private readonly HttpClient _httpClient;
@@ -75,15 +75,13 @@ public sealed class MelipayamakSmsProvider : ISmsProvider
 
     private string ResolveBodyId(string? templateKey)
     {
-        if (!string.IsNullOrWhiteSpace(templateKey))
+        if (!string.IsNullOrWhiteSpace(templateKey) &&
+            _options.ProviderSettings.TryGetValue(
+                $"{TemplateBodyIdPrefix}{templateKey}",
+                out var templateBodyId) &&
+            !string.IsNullOrWhiteSpace(templateBodyId))
         {
-            var templateSettingKey = $"{TemplateSettingsPrefix}{templateKey}:{BodyIdSetting}";
-
-            if (_options.ProviderSettings.TryGetValue(templateSettingKey, out var templateBodyId) &&
-                !string.IsNullOrWhiteSpace(templateBodyId))
-            {
-                return templateBodyId;
-            }
+            return templateBodyId;
         }
 
         return _options.GetRequiredProviderSetting(BodyIdSetting);
