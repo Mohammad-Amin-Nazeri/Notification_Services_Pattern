@@ -57,7 +57,7 @@ public sealed class AppSettingsSmsProviderOptionsProviderTests
 
         Assert.Equal(
             "12345",
-            result.BodyId);
+            result.GetRequiredProviderSetting("BodyId"));
     }
 
     [Fact]
