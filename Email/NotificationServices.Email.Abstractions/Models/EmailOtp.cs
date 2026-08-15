@@ -6,4 +6,5 @@ namespace NotificationServices.Email.Abstractions.Models;
 public sealed record EmailOtp(
     string To,
     string Code,
-    string? Subject = null);
+    string? Subject = null,
+    string? TemplateKey = null);
