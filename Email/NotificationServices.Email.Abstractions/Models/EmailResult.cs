@@ -8,6 +8,8 @@ public sealed class EmailResult
 
     public string? ErrorCode { get; init; }
 
+    public bool IsRetryable { get; init; }
+
     public static EmailResult Success(string? message = null)
     {
         return new EmailResult
@@ -19,13 +21,15 @@ public sealed class EmailResult
 
     public static EmailResult Failure(
         string message,
-        string? errorCode = null)
+        string? errorCode = null,
+        bool isRetryable = false)
     {
         return new EmailResult
         {
             IsSuccess = false,
             Message = message,
-            ErrorCode = errorCode
+            ErrorCode = errorCode,
+            IsRetryable = isRetryable
         };
     }
 }
