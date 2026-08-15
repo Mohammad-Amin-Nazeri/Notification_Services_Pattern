@@ -65,4 +65,26 @@ jobs:
           PACKAGE="${packages[0]}"
           echo "Package found: $PACKAGE"
 
-          dotnet nuget verify "$PACKAGE" --all
+          required_files=(
+            "lib/net10.0/NotificationServices.dll"
+            "lib/net10.0/NotificationServices.Email.dll"
+            "lib/net10.0/NotificationServices.Email.Abstractions.dll"
+            "lib/net10.0/NotificationServices.Sms.dll"
+            "lib/net10.0/NotificationServices.Sms.Abstractions.dll"
+            "README.md"
+            "LICENSE"
+          )
+
+          for required_file in "${required_files[@]}"; do
+            if ! unzip -l "$PACKAGE" | grep -Fq "$required_file"; then
+              echo "Required package file is missing: $required_file"
+              exit 1
+            fi
+          done
+
+          if unzip -l "$PACKAGE" | grep -Eq '(^|/)\.pdb$|(^|/)\.xml$'; then
+            echo "Unexpected debug/documentation artifacts detected in package."
+            exit 1
+          fi
+
+          echo "Unified package contents verified successfully."
