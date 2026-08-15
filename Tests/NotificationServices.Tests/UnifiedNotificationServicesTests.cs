@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using NotificationServices.Abstractions;
 using NotificationServices.Configuration;
 using NotificationServices.DependencyInjection;
 using NotificationServices.Email.Abstractions.Interfaces;
@@ -21,7 +20,12 @@ public sealed class UnifiedNotificationServicesTests
             {
                 ["NotificationServices:Email:Host"] = "smtp.example.com",
                 ["NotificationServices:Email:Port"] = "587",
-                ["NotificationServices:Sms:ProviderType"] = "Example"
+                ["NotificationServices:Email:FromAddress"] = "noreply@example.com",
+                ["NotificationServices:Sms:ProviderType"] = "Melipayamak",
+                ["NotificationServices:Sms:Username"] = "user",
+                ["NotificationServices:Sms:Password"] = "password",
+                ["NotificationServices:Sms:From"] = "50004001",
+                ["NotificationServices:Sms:BaseUrl"] = "https://example.com/send"
             })
             .Build();
 
@@ -33,10 +37,9 @@ public sealed class UnifiedNotificationServicesTests
 
         Assert.IsType<AppSettingsNotificationOptionsProvider>(
             provider.GetRequiredService<INotificationOptionsProvider>());
-        Assert.IsType<DefaultNotificationCapabilitiesProvider>(
-            provider.GetRequiredService<INotificationCapabilitiesProvider>());
         Assert.NotNull(provider.GetRequiredService<IEmailService>());
         Assert.NotNull(provider.GetRequiredService<ISmsService>());
+        Assert.NotNull(provider.GetRequiredService<ISmsProviderFactory>());
     }
 
     [Fact]
@@ -53,159 +56,14 @@ public sealed class UnifiedNotificationServicesTests
         Assert.Equal("Custom", options.Sms.ProviderType);
     }
 
-    [Fact]
-    public async Task AddNotificationServices_WithCustomCapabilitiesProvider_UsesApplicationProvider()
-    {
-        var services = new ServiceCollection();
-        services.AddNotificationServices();
-        services.AddNotificationCapabilitiesProvider<TestCapabilitiesProvider>();
-
-        await using var provider = services.BuildServiceProvider();
-        var capabilities = await provider
-            .GetRequiredService<INotificationCapabilitiesProvider>()
-            .GetCapabilitiesAsync();
-
-        Assert.False(capabilities.EmailEnabled);
-        Assert.True(capabilities.SmsEnabled);
-    }
-
-    [Fact]
-    public async Task AddNotificationServices_WithScopedOptionsProvider_SelectsProviderPerLicense()
-    {
-        var services = new ServiceCollection();
-        services.AddScoped<TestLicenseContext>();
-        services.AddNotificationServices<TestLicenseAwareOptionsProvider>();
-        services.AddSmsProvider<TestKavenegarSmsProvider>("Kavenegar");
-
-        await using var provider = services.BuildServiceProvider();
-
-        await using (var licenseScope = provider.CreateAsyncScope())
-        {
-            var context = licenseScope.ServiceProvider.GetRequiredService<TestLicenseContext>();
-            context.LicenseId = "license-melipayamak";
-
-            var factory = licenseScope.ServiceProvider.GetRequiredService<ISmsProviderFactory>();
-            var resolved = await factory.GetProviderAsync();
-
-            Assert.IsType<NotificationServices.Sms.Providers.MelipayamakSmsProvider>(resolved);
-        }
-
-        await using (var licenseScope = provider.CreateAsyncScope())
-        {
-            var context = licenseScope.ServiceProvider.GetRequiredService<TestLicenseContext>();
-            context.LicenseId = "license-kavenegar";
-
-            var factory = licenseScope.ServiceProvider.GetRequiredService<ISmsProviderFactory>();
-            var resolved = await factory.GetProviderAsync();
-
-            Assert.IsType<TestKavenegarSmsProvider>(resolved);
-        }
-    }
-
-    [Fact]
-    public async Task AddNotificationServices_WithScopedOptionsProvider_DoesNotLeakProviderBetweenLicenses()
-    {
-        var services = new ServiceCollection();
-        services.AddScoped<TestLicenseContext>();
-        services.AddNotificationServices<TestLicenseAwareOptionsProvider>();
-        services.AddSmsProvider<TestKavenegarSmsProvider>("Kavenegar");
-
-        await using var provider = services.BuildServiceProvider();
-
-        await using var melipayamakScope = provider.CreateAsyncScope();
-        await using var kavenegarScope = provider.CreateAsyncScope();
-
-        melipayamakScope.ServiceProvider
-            .GetRequiredService<TestLicenseContext>()
-            .LicenseId = "license-melipayamak";
-
-        kavenegarScope.ServiceProvider
-            .GetRequiredService<TestLicenseContext>()
-            .LicenseId = "license-kavenegar";
-
-        var melipayamakFactory = melipayamakScope.ServiceProvider
-            .GetRequiredService<ISmsProviderFactory>();
-        var kavenegarFactory = kavenegarScope.ServiceProvider
-            .GetRequiredService<ISmsProviderFactory>();
-
-        var melipayamakProvider = await melipayamakFactory.GetProviderAsync();
-        var kavenegarProvider = await kavenegarFactory.GetProviderAsync();
-
-        Assert.IsType<NotificationServices.Sms.Providers.MelipayamakSmsProvider>(melipayamakProvider);
-        Assert.IsType<TestKavenegarSmsProvider>(kavenegarProvider);
-    }
-
     private sealed class TestNotificationOptionsProvider : INotificationOptionsProvider
     {
-        public ValueTask<NotificationOptions> GetOptionsAsync(CancellationToken cancellationToken = default)
+        public ValueTask<NotificationOptions> GetOptionsAsync(
+            CancellationToken cancellationToken = default)
             => ValueTask.FromResult(new NotificationOptions
             {
                 Email = new() { Host = "custom.smtp.local" },
                 Sms = new() { ProviderType = "Custom" }
             });
-    }
-
-    private sealed class TestCapabilitiesProvider : INotificationCapabilitiesProvider
-    {
-        public ValueTask<NotificationCapabilities> GetCapabilitiesAsync(
-            CancellationToken cancellationToken = default)
-            => ValueTask.FromResult(new NotificationCapabilities
-            {
-                EmailEnabled = false,
-                SmsEnabled = true
-            });
-    }
-
-    private sealed class TestLicenseContext
-    {
-        public string LicenseId { get; set; } = string.Empty;
-    }
-
-    private sealed class TestLicenseAwareOptionsProvider(
-        TestLicenseContext context) : INotificationOptionsProvider
-    {
-        public ValueTask<NotificationOptions> GetOptionsAsync(
-            CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var provider = context.LicenseId switch
-            {
-                "license-melipayamak" => "Melipayamak",
-                "license-kavenegar" => "Kavenegar",
-                _ => throw new InvalidOperationException(
-                    $"License '{context.LicenseId}' is not configured.")
-            };
-
-            return ValueTask.FromResult(new NotificationOptions
-            {
-                Email = new() { Host = "smtp.example.com", Port = 587 },
-                Sms = new()
-                {
-                    ProviderType = provider,
-                    Username = "test-user",
-                    Password = "test-password",
-                    From = "50004001",
-                    BaseUrl = "https://example.com/send",
-                    PatternBaseUrl = "https://example.com/pattern",
-                    BodyId = "12345"
-                }
-            });
-        }
-    }
-
-    private sealed class TestKavenegarSmsProvider(SmsProviderOptions options) : ISmsProvider
-    {
-        public SmsProviderOptions Options { get; } = options;
-
-        public Task<SmsResult> SendMessageAsync(
-            SmsMessage message,
-            CancellationToken cancellationToken = default) =>
-            Task.FromResult(SmsResult.Success("kavenegar-test"));
-
-        public Task<SmsResult> SendOtpAsync(
-            SmsOtp otp,
-            CancellationToken cancellationToken = default) =>
-            Task.FromResult(SmsResult.Success("kavenegar-test"));
     }
 }
