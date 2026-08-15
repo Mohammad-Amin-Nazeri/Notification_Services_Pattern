@@ -5,4 +5,5 @@ namespace NotificationServices.Sms.Abstractions.Models;
 /// </summary>
 public sealed record SmsOtp(
     string Mobile,
-    string Code);
+    string Code,
+    string? TemplateKey = null);
