@@ -11,6 +11,10 @@ internal sealed class SmsOptionsAdapter(
         CancellationToken cancellationToken = default)
     {
         var options = await optionsProvider.GetOptionsAsync(cancellationToken);
+        var providerSettings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        if (!string.IsNullOrWhiteSpace(options.Sms.BodyId))
+            providerSettings["BodyId"] = options.Sms.BodyId;
 
         return new SmsProviderOptions
         {
@@ -20,7 +24,7 @@ internal sealed class SmsOptionsAdapter(
             From = options.Sms.From,
             BaseUrl = options.Sms.BaseUrl,
             PatternBaseUrl = options.Sms.PatternBaseUrl,
-            BodyId = options.Sms.BodyId
+            ProviderSettings = providerSettings
         };
     }
 }
