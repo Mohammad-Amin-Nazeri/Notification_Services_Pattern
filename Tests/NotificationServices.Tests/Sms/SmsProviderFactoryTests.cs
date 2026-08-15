@@ -76,7 +76,10 @@ public sealed class SmsProviderFactoryTests
             From = "50004001",
             BaseUrl = "https://example.com/send",
             PatternBaseUrl = "https://example.com/pattern",
-            BodyId = "12345"
+            ProviderSettings = new Dictionary<string, string>
+            {
+                ["BodyId"] = "12345"
+            }
         };
 
         optionsProvider
