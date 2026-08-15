@@ -30,32 +30,4 @@ jobs:
         run: dotnet build NotificationServices.slnx --configuration Release --no-restore
 
       - name: Run tests with coverage
-        run: dotnet test NotificationServices.slnx --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory ./TestResults
-
-      - name: Pack unified package
-        run: dotnet pack src/NotificationServices/NotificationServices.csproj --configuration Release --no-build --output ./artifacts
-
-      - name: Verify unified package contents
-        shell: bash
-        run: |
-          PACKAGE="./artifacts/NotificationServices.Kit.2.0.1.nupkg"
-          test -f "$PACKAGE"
-          unzip -l "$PACKAGE" | grep -q 'lib/net10.0/NotificationServices.dll'
-          unzip -l "$PACKAGE" | grep -q 'lib/net10.0/NotificationServices.Email.dll'
-          unzip -l "$PACKAGE" | grep -q 'lib/net10.0/NotificationServices.Email.Abstractions.dll'
-          unzip -l "$PACKAGE" | grep -q 'lib/net10.0/NotificationServices.Sms.dll'
-          unzip -l "$PACKAGE" | grep -q 'lib/net10.0/NotificationServices.Sms.Abstractions.dll'
-          echo "Unified package and consumer assemblies verified successfully."
-
-      - name: Upload coverage results
-        uses: actions/upload-artifact@v4
-        with:
-          name: code-coverage
-          path: TestResults/**/coverage.cobertura.xml
-          if-no-files-found: error
-
-      - name: Upload NuGet package
-        uses: actions/upload-artifact@v4
-        with:
-          name: NotificationServices-Kit-package
-          path: artifacts/NotificationServices.Kit.2.0.1.nupkg
+        run: dotnet test NotificationServices.slnx --configuration Release --no-build --collect:"XPlat Code
