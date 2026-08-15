@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using NotificationServices.Sms.Abstractions.Models;
 using NotificationServices.Sms.Providers;
@@ -19,70 +19,32 @@ public sealed class MelipayamakSmsProviderTests
             {
                 capturedMethod = request.Method;
                 capturedUrl = request.RequestUri?.ToString();
-                capturedBody =
-                    await request.Content!.ReadAsStringAsync();
-
+                capturedBody = await request.Content!.ReadAsStringAsync();
                 return CreateSuccessResponse("123456");
             });
 
         using var httpClient = new HttpClient(handler);
-
         var options = CreateOptions();
-
-        var provider = new MelipayamakSmsProvider(
-            options,
-            httpClient);
-
-        var message = new SmsMessage(
-            "09120000000",
-            "Hello World");
+        var provider = new MelipayamakSmsProvider(options, httpClient);
 
         var result = await provider.SendMessageAsync(
-            message);
+            new SmsMessage("09120000000", "Hello World"));
 
         Assert.True(result.IsSuccess);
-
-        Assert.Equal(
-            "123456",
-            result.Message);
-
-        Assert.Equal(
-            HttpMethod.Post,
-            capturedMethod);
-
-        Assert.Equal(
-            options.BaseUrl,
-            capturedUrl);
-
+        Assert.Equal("123456", result.Message);
+        Assert.Equal(HttpMethod.Post, capturedMethod);
+        Assert.Equal(options.BaseUrl, capturedUrl);
         Assert.NotNull(capturedBody);
-
-        Assert.Contains(
-            "username=test-user",
-            capturedBody);
-
-        Assert.Contains(
-            "password=test-password",
-            capturedBody);
-
-        Assert.Contains(
-            "to=09120000000",
-            capturedBody);
-
-        Assert.Contains(
-            "from=50004001",
-            capturedBody);
-
-        Assert.Contains(
-            "text=Hello+World",
-            capturedBody);
-
-        Assert.Contains(
-            "isFlash=false",
-            capturedBody);
+        Assert.Contains("username=test-user", capturedBody);
+        Assert.Contains("password=test-password", capturedBody);
+        Assert.Contains("to=09120000000", capturedBody);
+        Assert.Contains("from=50004001", capturedBody);
+        Assert.Contains("text=Hello+World", capturedBody);
+        Assert.Contains("isFlash=false", capturedBody);
     }
 
     [Fact]
-    public async Task SendOtpAsync_ShouldUsePatternEndpoint()
+    public async Task SendOtpAsync_ShouldUsePatternEndpointAndProviderSetting()
     {
         HttpMethod? capturedMethod = null;
         string? capturedUrl = null;
@@ -93,268 +55,154 @@ public sealed class MelipayamakSmsProviderTests
             {
                 capturedMethod = request.Method;
                 capturedUrl = request.RequestUri?.ToString();
-                capturedBody =
-                    await request.Content!.ReadAsStringAsync();
-
+                capturedBody = await request.Content!.ReadAsStringAsync();
                 return CreateSuccessResponse("987654");
             });
 
         using var httpClient = new HttpClient(handler);
-
         var options = CreateOptions();
-
-        var provider = new MelipayamakSmsProvider(
-            options,
-            httpClient);
-
-        var otp = new SmsOtp(
-            "09120000000",
-            "123456");
+        var provider = new MelipayamakSmsProvider(options, httpClient);
 
         var result = await provider.SendOtpAsync(
-            otp);
+            new SmsOtp("09120000000", "123456"));
 
         Assert.True(result.IsSuccess);
-
-        Assert.Equal(
-            "987654",
-            result.Message);
-
-        Assert.Equal(
-            HttpMethod.Post,
-            capturedMethod);
-
-        Assert.Equal(
-            options.PatternBaseUrl,
-            capturedUrl);
-
+        Assert.Equal("987654", result.Message);
+        Assert.Equal(HttpMethod.Post, capturedMethod);
+        Assert.Equal(options.PatternBaseUrl, capturedUrl);
         Assert.NotNull(capturedBody);
-
-        Assert.Contains(
-            "username=test-user",
-            capturedBody);
-
-        Assert.Contains(
-            "password=test-password",
-            capturedBody);
-
-        Assert.Contains(
-            "to=09120000000",
-            capturedBody);
-
-        Assert.Contains(
-            "bodyId=12345",
-            capturedBody);
-
-        Assert.Contains(
-            "text=123456%3B",
-            capturedBody);
+        Assert.Contains("username=test-user", capturedBody);
+        Assert.Contains("password=test-password", capturedBody);
+        Assert.Contains("to=09120000000", capturedBody);
+        Assert.Contains("bodyId=12345", capturedBody);
+        Assert.Contains("text=123456%3B", capturedBody);
     }
 
     [Fact]
     public async Task SendMessageAsync_WhenProviderReturnsFailure_ShouldReturnFailure()
     {
         var handler = new FakeHttpMessageHandler(
-            _ =>
-                Task.FromResult(
-                    new HttpResponseMessage(
-                        HttpStatusCode.BadRequest)));
+            _ => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadRequest)));
 
         using var httpClient = new HttpClient(handler);
-
-        var provider = new MelipayamakSmsProvider(
-            CreateOptions(),
-            httpClient);
+        var provider = new MelipayamakSmsProvider(CreateOptions(), httpClient);
 
         var result = await provider.SendMessageAsync(
-            new SmsMessage(
-                "09120000000",
-                "Hello"));
+            new SmsMessage("09120000000", "Hello"));
 
         Assert.False(result.IsSuccess);
-
-        Assert.Equal(
-            "BadRequest",
-            result.ErrorCode);
+        Assert.Equal("BadRequest", result.ErrorCode);
     }
 
     [Fact]
     public async Task SendMessageAsync_WhenResponseIsInvalidJson_ShouldReturnFailure()
     {
         var handler = new FakeHttpMessageHandler(
-            _ =>
-                Task.FromResult(
-                    new HttpResponseMessage(
-                        HttpStatusCode.OK)
-                    {
-                        Content = new StringContent(
-                            "not-json")
-                    }));
+            _ => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("not-json")
+            }));
 
         using var httpClient = new HttpClient(handler);
-
-        var provider = new MelipayamakSmsProvider(
-            CreateOptions(),
-            httpClient);
+        var provider = new MelipayamakSmsProvider(CreateOptions(), httpClient);
 
         var result = await provider.SendMessageAsync(
-            new SmsMessage(
-                "09120000000",
-                "Hello"));
+            new SmsMessage("09120000000", "Hello"));
 
         Assert.False(result.IsSuccess);
-
-        Assert.Equal(
-            "InvalidProviderResponse",
-            result.ErrorCode);
+        Assert.Equal("InvalidProviderResponse", result.ErrorCode);
     }
 
     [Fact]
     public async Task SendMessageAsync_WhenProviderReturnsNullResponse_ShouldReturnFailure()
     {
         var handler = new FakeHttpMessageHandler(
-            _ =>
-                Task.FromResult(
-                    new HttpResponseMessage(
-                        HttpStatusCode.OK)
-                    {
-                        Content = new StringContent(
-                            "null")
-                    }));
+            _ => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("null")
+            }));
 
         using var httpClient = new HttpClient(handler);
-
-        var provider = new MelipayamakSmsProvider(
-            CreateOptions(),
-            httpClient);
+        var provider = new MelipayamakSmsProvider(CreateOptions(), httpClient);
 
         var result = await provider.SendMessageAsync(
-            new SmsMessage(
-                "09120000000",
-                "Hello"));
+            new SmsMessage("09120000000", "Hello"));
 
         Assert.False(result.IsSuccess);
-
-        Assert.Equal(
-            "EmptyProviderResponse",
-            result.ErrorCode);
+        Assert.Equal("EmptyProviderResponse", result.ErrorCode);
     }
 
     [Fact]
     public async Task SendMessageAsync_WhenProviderRejectsRequest_ShouldReturnFailure()
     {
         var handler = new FakeHttpMessageHandler(
-            _ =>
-                Task.FromResult(
-                    new HttpResponseMessage(
-                        HttpStatusCode.OK)
+            _ => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    """
                     {
-                        Content = new StringContent(
-                            """
-                            {
-                                "RetStatus": 0,
-                                "Value": "Invalid credentials"
-                            }
-                            """,
-                            Encoding.UTF8,
-                            "application/json")
-                    }));
+                        "RetStatus": 0,
+                        "Value": "Invalid credentials"
+                    }
+                    """,
+                    Encoding.UTF8,
+                    "application/json")
+            }));
 
         using var httpClient = new HttpClient(handler);
-
-        var provider = new MelipayamakSmsProvider(
-            CreateOptions(),
-            httpClient);
+        var provider = new MelipayamakSmsProvider(CreateOptions(), httpClient);
 
         var result = await provider.SendMessageAsync(
-            new SmsMessage(
-                "09120000000",
-                "Hello"));
+            new SmsMessage("09120000000", "Hello"));
 
         Assert.False(result.IsSuccess);
-
-        Assert.Equal(
-            "0",
-            result.ErrorCode);
-
-        Assert.Equal(
-            "Invalid credentials",
-            result.Message);
+        Assert.Equal("0", result.ErrorCode);
+        Assert.Equal("Invalid credentials", result.Message);
     }
 
     [Fact]
     public async Task SendMessageAsync_WhenBaseUrlIsMissing_ShouldThrow()
     {
         var options = CreateOptions();
-
         options.BaseUrl = "";
 
-        using var httpClient = new HttpClient(
-            new FakeHttpMessageHandler(
-                _ =>
-                    Task.FromResult(
-                        new HttpResponseMessage(
-                            HttpStatusCode.OK))));
+        using var httpClient = new HttpClient(new FakeHttpMessageHandler(
+            _ => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK))));
 
-        var provider = new MelipayamakSmsProvider(
-            options,
-            httpClient);
+        var provider = new MelipayamakSmsProvider(options, httpClient);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => provider.SendMessageAsync(
-                new SmsMessage(
-                    "09120000000",
-                    "Hello")));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => provider.SendMessageAsync(
+            new SmsMessage("09120000000", "Hello")));
     }
 
     [Fact]
     public async Task SendOtpAsync_WhenPatternUrlIsMissing_ShouldThrow()
     {
         var options = CreateOptions();
-
         options.PatternBaseUrl = "";
 
-        using var httpClient = new HttpClient(
-            new FakeHttpMessageHandler(
-                _ =>
-                    Task.FromResult(
-                        new HttpResponseMessage(
-                            HttpStatusCode.OK))));
+        using var httpClient = new HttpClient(new FakeHttpMessageHandler(
+            _ => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK))));
 
-        var provider = new MelipayamakSmsProvider(
-            options,
-            httpClient);
+        var provider = new MelipayamakSmsProvider(options, httpClient);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => provider.SendOtpAsync(
-                new SmsOtp(
-                    "09120000000",
-                    "123456")));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => provider.SendOtpAsync(
+            new SmsOtp("09120000000", "123456")));
     }
 
     [Fact]
     public async Task SendOtpAsync_WhenBodyIdIsMissing_ShouldThrow()
     {
         var options = CreateOptions();
+        options.ProviderSettings.Remove("BodyId");
 
-        options.BodyId = "";
+        using var httpClient = new HttpClient(new FakeHttpMessageHandler(
+            _ => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK))));
 
-        using var httpClient = new HttpClient(
-            new FakeHttpMessageHandler(
-                _ =>
-                    Task.FromResult(
-                        new HttpResponseMessage(
-                            HttpStatusCode.OK))));
+        var provider = new MelipayamakSmsProvider(options, httpClient);
 
-        var provider = new MelipayamakSmsProvider(
-            options,
-            httpClient);
-
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => provider.SendOtpAsync(
-                new SmsOtp(
-                    "09120000000",
-                    "123456")));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => provider.SendOtpAsync(
+            new SmsOtp("09120000000", "123456")));
     }
 
     private static SmsProviderOptions CreateOptions()
@@ -367,15 +215,16 @@ public sealed class MelipayamakSmsProviderTests
             From = "50004001",
             BaseUrl = "https://example.com/send",
             PatternBaseUrl = "https://example.com/pattern",
-            BodyId = "12345"
+            ProviderSettings = new Dictionary<string, string>
+            {
+                ["BodyId"] = "12345"
+            }
         };
     }
 
-    private static HttpResponseMessage CreateSuccessResponse(
-        string value)
+    private static HttpResponseMessage CreateSuccessResponse(string value)
     {
-        return new HttpResponseMessage(
-            HttpStatusCode.OK)
+        return new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent(
                 $$"""
@@ -389,17 +238,11 @@ public sealed class MelipayamakSmsProviderTests
         };
     }
 
-    private sealed class FakeHttpMessageHandler
-        : HttpMessageHandler
+    private sealed class FakeHttpMessageHandler : HttpMessageHandler
     {
-        private readonly Func<
-            HttpRequestMessage,
-            Task<HttpResponseMessage>> _handler;
+        private readonly Func<HttpRequestMessage, Task<HttpResponseMessage>> _handler;
 
-        public FakeHttpMessageHandler(
-            Func<
-                HttpRequestMessage,
-                Task<HttpResponseMessage>> handler)
+        public FakeHttpMessageHandler(Func<HttpRequestMessage, Task<HttpResponseMessage>> handler)
         {
             _handler = handler;
         }
