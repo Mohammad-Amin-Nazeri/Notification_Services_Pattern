@@ -1,6 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using NotificationServices.Abstractions;
 using NotificationServices.Configuration;
 using NotificationServices.Email;
 using NotificationServices.Email.Abstractions.Interfaces;
@@ -20,7 +18,6 @@ public static class ServiceCollectionExtensions
 
         services.AddLogging();
         services.AddScoped<INotificationOptionsProvider, AppSettingsNotificationOptionsProvider>();
-        services.AddScoped<INotificationCapabilitiesProvider, DefaultNotificationCapabilitiesProvider>();
 
         return AddNotificationServicesCore(services);
     }
@@ -32,18 +29,8 @@ public static class ServiceCollectionExtensions
 
         services.AddLogging();
         services.AddScoped<INotificationOptionsProvider, TOptionsProvider>();
-        services.TryAddScoped<INotificationCapabilitiesProvider, DefaultNotificationCapabilitiesProvider>();
 
         return AddNotificationServicesCore(services);
-    }
-
-    public static IServiceCollection AddNotificationCapabilitiesProvider<TCapabilitiesProvider>(this IServiceCollection services)
-        where TCapabilitiesProvider : class, INotificationCapabilitiesProvider
-    {
-        ArgumentNullException.ThrowIfNull(services);
-
-        services.AddScoped<INotificationCapabilitiesProvider, TCapabilitiesProvider>();
-        return services;
     }
 
     private static IServiceCollection AddNotificationServicesCore(IServiceCollection services)
@@ -51,12 +38,15 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient();
         services.AddHttpClient(nameof(MelipayamakSmsProvider)).AddStandardResilienceHandler();
 
+        services.AddEmailService();
         services.AddScoped<IEmailProviderOptionsProvider, EmailOptionsAdapter>();
         services.AddScoped<IEmailService, EmailService>();
+
         services.AddScoped<ISmsProviderOptionsProvider, SmsOptionsAdapter>();
         services.AddSmsProvider<MelipayamakSmsProvider>("Melipayamak");
         services.AddScoped<ISmsProviderFactory, SmsProviderFactory>();
         services.AddScoped<ISmsService, SmsService>();
+
         return services;
     }
 }
