@@ -5,9 +5,8 @@ namespace NotificationServices.Configuration;
 /// <summary>
 /// Supplies notification settings from any application-defined source.
 /// The library does not know whether the source is appsettings, database, cache, API, or another system.
-///
-/// Register custom implementations as scoped services when the selected configuration can vary by
-/// request, tenant, user, license, or other application context.
+/// Register custom implementations as scoped services when configuration varies by request or other
+/// application-owned context.
 /// </summary>
 public interface INotificationOptionsProvider
 {
