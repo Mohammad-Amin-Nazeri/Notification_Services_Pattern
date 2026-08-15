@@ -30,4 +30,35 @@ jobs:
         run: dotnet build NotificationServices.slnx --configuration Release --no-restore
 
       - name: Run tests with coverage
-        run: dotnet test NotificationServices.slnx --configuration Release --no-build --collect:"XPlat Code
+        run: dotnet test NotificationServices.slnx --configuration Release --no-build --collect:"XPlat Code Coverage"
+
+      - name: Pack package
+        run: |
+          rm -rf ./artifacts
+          dotnet pack src/NotificationServices/NotificationServices.csproj \
+            --configuration Release \
+            --no-build \
+            --output ./artifacts
+
+      - name: Verify package
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          packages=(./artifacts/*.nupkg)
+
+          if [ ! -e "${packages[0]}" ]; then
+            echo "NuGet package not found"
+            exit 1
+          fi
+
+          if [ "${#packages[@]}" -ne 1 ]; then
+            echo "Expected exactly one NuGet package, found ${#packages[@]}"
+            printf '%s\n' "${packages[@]}"
+            exit 1
+          fi
+
+          PACKAGE="${packages[0]}"
+          echo "Package found: $PACKAGE"
+
+          dotnet nuget verify "$PACKAGE" --all
