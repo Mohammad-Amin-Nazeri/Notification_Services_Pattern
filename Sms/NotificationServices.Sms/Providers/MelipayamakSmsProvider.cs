@@ -9,6 +9,7 @@ namespace NotificationServices.Sms.Providers;
 public sealed class MelipayamakSmsProvider : ISmsProvider
 {
     private const string BodyIdSetting = "BodyId";
+    private const string TemplateSettingsPrefix = "Templates:";
 
     private readonly SmsProviderOptions _options;
     private readonly HttpClient _httpClient;
@@ -58,7 +59,7 @@ public sealed class MelipayamakSmsProvider : ISmsProvider
         if (string.IsNullOrWhiteSpace(_options.PatternBaseUrl))
             throw new InvalidOperationException("SMS provider PatternBaseUrl is not configured.");
 
-        var bodyId = _options.GetRequiredProviderSetting(BodyIdSetting);
+        var bodyId = ResolveBodyId(otp.TemplateKey);
 
         var values = new Dictionary<string, string>
         {
@@ -70,6 +71,22 @@ public sealed class MelipayamakSmsProvider : ISmsProvider
         };
 
         return await SendRequestAsync(_options.PatternBaseUrl, values, cancellationToken);
+    }
+
+    private string ResolveBodyId(string? templateKey)
+    {
+        if (!string.IsNullOrWhiteSpace(templateKey))
+        {
+            var templateSettingKey = $"{TemplateSettingsPrefix}{templateKey}:{BodyIdSetting}";
+
+            if (_options.ProviderSettings.TryGetValue(templateSettingKey, out var templateBodyId) &&
+                !string.IsNullOrWhiteSpace(templateBodyId))
+            {
+                return templateBodyId;
+            }
+        }
+
+        return _options.GetRequiredProviderSetting(BodyIdSetting);
     }
 
     private async Task<SmsResult> SendRequestAsync(
