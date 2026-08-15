@@ -25,7 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NotificationServices.Abstractions\NotificationServices.Abstractions.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Email\NotificationServices.Email\NotificationServices.Email.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Sms\NotificationServices.Sms\NotificationServices.Sms.csproj" PrivateAssets="all" />
   </ItemGroup>
@@ -36,7 +35,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(OutputPath)NotificationServices.Abstractions.dll" Pack="true" PackagePath="lib/$(TargetFramework)/NotificationServices.Abstractions.dll" />
     <None Include="$(OutputPath)NotificationServices.Email.dll" Pack="true" PackagePath="lib/$(TargetFramework)/NotificationServices.Email.dll" />
     <None Include="$(OutputPath)NotificationServices.Email.Abstractions.dll" Pack="true" PackagePath="lib/$(TargetFramework)/NotificationServices.Email.Abstractions.dll" />
     <None Include="$(OutputPath)NotificationServices.Sms.dll" Pack="true" PackagePath="lib/$(TargetFramework)/NotificationServices.Sms.dll" />
