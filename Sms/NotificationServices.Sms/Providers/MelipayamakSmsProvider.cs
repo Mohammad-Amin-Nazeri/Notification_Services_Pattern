@@ -8,6 +8,8 @@ namespace NotificationServices.Sms.Providers;
 
 public sealed class MelipayamakSmsProvider : ISmsProvider
 {
+    private const string BodyIdSetting = "BodyId";
+
     private readonly SmsProviderOptions _options;
     private readonly HttpClient _httpClient;
     private readonly ILogger<MelipayamakSmsProvider> _logger;
@@ -56,8 +58,7 @@ public sealed class MelipayamakSmsProvider : ISmsProvider
         if (string.IsNullOrWhiteSpace(_options.PatternBaseUrl))
             throw new InvalidOperationException("SMS provider PatternBaseUrl is not configured.");
 
-        if (string.IsNullOrWhiteSpace(_options.BodyId))
-            throw new InvalidOperationException("SMS provider BodyId is not configured.");
+        var bodyId = _options.GetRequiredProviderSetting(BodyIdSetting);
 
         var values = new Dictionary<string, string>
         {
@@ -65,7 +66,7 @@ public sealed class MelipayamakSmsProvider : ISmsProvider
             ["password"] = _options.Password,
             ["to"] = otp.Mobile,
             ["text"] = $"{otp.Code};",
-            ["bodyId"] = _options.BodyId
+            ["bodyId"] = bodyId
         };
 
         return await SendRequestAsync(_options.PatternBaseUrl, values, cancellationToken);
