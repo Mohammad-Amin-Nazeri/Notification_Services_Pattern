@@ -4,8 +4,8 @@ namespace NotificationServices.Sms.Abstractions.Interfaces;
 
 /// <summary>
 /// Resolves and creates SMS providers by their configured provider key.
-/// Implementations must resolve providers at runtime so different tenants or licenses
-/// can select different providers without changing application registrations.
+/// Provider selection is runtime-driven and can be supplied by any application-owned
+/// configuration source without changing the notification service API.
 /// </summary>
 public interface ISmsProviderRegistry
 {
