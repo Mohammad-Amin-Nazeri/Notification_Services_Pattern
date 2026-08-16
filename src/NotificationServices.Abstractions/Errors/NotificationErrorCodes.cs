@@ -10,4 +10,8 @@ public static class NotificationErrorCodes
     public const string InvalidProviderResponse = "InvalidProviderResponse";
     public const string ProviderRejected = "ProviderRejected";
     public const string Unknown = "Unknown";
+
+    // Backward compatibility aliases for previous provider error contracts.
+    public const string BadRequest = "BadRequest";
+    public const string EmptyProviderResponse = "EmptyProviderResponse";
 }
