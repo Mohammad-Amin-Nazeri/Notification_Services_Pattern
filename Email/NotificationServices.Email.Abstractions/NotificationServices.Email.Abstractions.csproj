@@ -5,4 +5,8 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\NotificationServices.Abstractions\NotificationServices.Abstractions.csproj" />
+  </ItemGroup>
 </Project>
