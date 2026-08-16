@@ -1,3 +1,5 @@
+using NotificationServices.Abstractions.Errors;
+
 namespace NotificationServices.Email.Abstractions.Models;
 
 public sealed class EmailResult
@@ -9,6 +11,8 @@ public sealed class EmailResult
     public string? ErrorCode { get; init; }
 
     public bool IsRetryable { get; init; }
+
+    public NotificationError? Error { get; init; }
 
     public static EmailResult Success(string? message = null)
     {
@@ -22,14 +26,23 @@ public sealed class EmailResult
     public static EmailResult Failure(
         string message,
         string? errorCode = null,
-        bool isRetryable = false)
+        bool isRetryable = false,
+        NotificationError? error = null)
     {
         return new EmailResult
         {
             IsSuccess = false,
             Message = message,
-            ErrorCode = errorCode,
-            IsRetryable = isRetryable
+            ErrorCode = errorCode ?? error?.Code,
+            IsRetryable = error?.IsRetryable ?? isRetryable,
+            Error = error
         };
+    }
+
+    public static EmailResult Failure(NotificationError error)
+    {
+        ArgumentNullException.ThrowIfNull(error);
+
+        return Failure(error.Message, error.Code, error.IsRetryable, error);
     }
 }
