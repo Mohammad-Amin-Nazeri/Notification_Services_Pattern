@@ -4,6 +4,7 @@
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/NotificationServices/">
+    <Project Path="src/NotificationServices.Abstractions/NotificationServices.Abstractions.csproj" />
     <Project Path="src/NotificationServices/NotificationServices.csproj" />
   </Folder>
   <Folder Name="/src/Email/">
