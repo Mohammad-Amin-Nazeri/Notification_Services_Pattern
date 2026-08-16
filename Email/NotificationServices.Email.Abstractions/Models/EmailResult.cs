@@ -1,4 +1,4 @@
-using NotificationServices.Abstractions.Errors;
+using SharedNotificationError = NotificationServices.Abstractions.Errors.NotificationError;
 
 namespace NotificationServices.Email.Abstractions.Models;
 
@@ -12,7 +12,7 @@ public sealed class EmailResult
 
     public bool IsRetryable { get; init; }
 
-    public NotificationError? Error { get; init; }
+    public SharedNotificationError? Error { get; init; }
 
     public static EmailResult Success(string? message = null)
     {
@@ -27,7 +27,7 @@ public sealed class EmailResult
         string message,
         string? errorCode = null,
         bool isRetryable = false,
-        NotificationError? error = null)
+        SharedNotificationError? error = null)
     {
         return new EmailResult
         {
@@ -39,7 +39,7 @@ public sealed class EmailResult
         };
     }
 
-    public static EmailResult Failure(NotificationError error)
+    public static EmailResult Failure(SharedNotificationError error)
     {
         ArgumentNullException.ThrowIfNull(error);
 
