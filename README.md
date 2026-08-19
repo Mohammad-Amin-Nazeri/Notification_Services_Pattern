@@ -1,98 +1,84 @@
-<div align="center">
+# 📦 NotificationServices.Kit
 
-# Notification Services Pattern
+A reusable **.NET 10** notification package for sending **Email and SMS** through simple abstractions, dependency injection, and provider-based SMS integration.
 
-**A reusable, provider-based .NET notification infrastructure for Email and SMS.**
+The package keeps application code independent from provider-specific implementations and configuration sources.
 
 [![CI](https://github.com/Mohammad-Amin-Nazeri/Notification_Services_Pattern/actions/workflows/ci.yml/badge.svg)](https://github.com/Mohammad-Amin-Nazeri/Notification_Services_Pattern/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
-[![C#](https://img.shields.io/badge/C%23-13.0-239120?logo=csharp&logoColor=white)](https://learn.microsoft.com/dotnet/csharp/)
+[![NuGet](https://img.shields.io/nuget/v/NotificationServices.Kit?label=NuGet)](https://www.nuget.org/packages/NotificationServices.Kit)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-<a href="#english"><strong>🇬🇧 English</strong></a>
-&nbsp;&nbsp;•&nbsp;&nbsp;
-<a href="#فارسی">🇮🇷 فارسی</a>
-
-</div>
+<a href="#english">🇬🇧 English</a> &nbsp;•&nbsp; <a href="#فارسی">🇮🇷 فارسی</a>
 
 ---
 
 <a id="english"></a>
 
-# 🇬🇧 English
+## 🇬🇧 English
 
-<a href="#فارسی">🇮🇷 رفتن به فارسی</a>
+### Overview
 
-## Overview
+`NotificationServices.Kit` provides a small, reusable API for Email and SMS notifications without coupling consuming applications to a specific SMS gateway or configuration source.
 
-`NotificationServices` is a reusable .NET library for sending Email and SMS notifications through a small, dependency-injection-friendly API.
+```text
+Application
+    │
+    ├── IEmailService
+    └── ISmsService
+           │
+           ▼
+ NotificationServices.Kit
+       ┌───────┴───────┐
+       ▼               ▼
+    Email             SMS
+    SMTP          Provider Factory
+                       │
+                       ▼
+                  SMS Provider
+```
 
-The project is designed around two principles:
-
-1. **Consumers should depend on stable notification abstractions.**
-2. **The library should not decide where application configuration is stored.**
-
-The built-in configuration provider reads from `appsettings.json`, while applications can provide their own `INotificationOptionsProvider` implementation for databases, Redis, APIs, environment variables, secret stores, or other configuration sources.
-
-The library does not require EF Core, Dapper, SQL Server, Redis, or any specific persistence technology.
-
-## Features
+### Features
 
 - 📧 Email messages through SMTP / MailKit
-- 🔐 Email OTP messages
+- 🔐 Email OTP
 - 📱 SMS messages
-- 🔐 SMS OTP messages
+- 🔐 SMS OTP
 - 🔌 Provider-based SMS architecture
 - ⚙️ Replaceable configuration source
-- 💉 Simple dependency injection registration
-- 🧪 Automated unit tests
-- 📊 Code coverage in CI
-- 🤖 GitHub Actions CI/CD
-- 📦 Unified `NotificationServices.Kit` NuGet package
-- 🛡️ No database-specific coupling
-- 🧩 Clear separation between public abstractions and implementations
-- ⛔ Proper cancellation support through `CancellationToken`
+- 💉 Dependency injection registration
+- ⛔ `CancellationToken` support
+- 🧪 Automated tests
+- 📊 CI and coverage
+- 📦 Unified NuGet package
+- 🛡️ No database or persistence dependency
 
-## Installation
-
-Install the unified consumer package:
+### Installation
 
 ```bash
 dotnet add package NotificationServices.Kit
 ```
 
-Or from Visual Studio Package Manager Console:
+Or:
 
 ```powershell
 Install-Package NotificationServices.Kit
 ```
 
-The repository also contains the Email and SMS implementation projects, their abstraction projects, a sample application, and automated tests.
+The current package version is **2.0.1**. It targets **.NET 10** and packages the Email and SMS implementation assemblies. fileciteturn159file0
 
-## Quick Start
+### Quick Start
 
-### Register the services
+Register the services:
 
 ```csharp
 using NotificationServices.DependencyInjection;
 
-services.AddNotificationServices();
+builder.Services.AddNotificationServices();
 ```
 
-The default registration uses the built-in `appsettings.json` configuration provider.
-
-You can also provide your own configuration source:
+Resolve the services through their abstractions:
 
 ```csharp
-services.AddNotificationServices<DatabaseNotificationOptionsProvider>();
-```
-
-Your custom provider must implement `INotificationOptionsProvider`.
-
-### Resolve the services
-
-```csharp
-using Microsoft.Extensions.DependencyInjection;
 using NotificationServices.Email.Abstractions.Interfaces;
 using NotificationServices.Sms.Abstractions.Interfaces;
 
@@ -100,7 +86,7 @@ var emailService = serviceProvider.GetRequiredService<IEmailService>();
 var smsService = serviceProvider.GetRequiredService<ISmsService>();
 ```
 
-### Send an Email
+### Send Email
 
 ```csharp
 var result = await emailService.SendMessageAsync(
@@ -111,14 +97,14 @@ var result = await emailService.SendMessageAsync(
         isHtml: true));
 ```
 
-### Send an Email OTP
+### Send Email OTP
 
 ```csharp
 var result = await emailService.SendOtpAsync(
     new EmailOtp("user@example.com", "123456"));
 ```
 
-### Send an SMS
+### Send SMS
 
 ```csharp
 var result = await smsService.SendMessageAsync(
@@ -127,18 +113,18 @@ var result = await smsService.SendMessageAsync(
         "Your order has been registered."));
 ```
 
-### Send an SMS OTP
+### Send SMS OTP
 
 ```csharp
 var result = await smsService.SendOtpAsync(
     new SmsOtp("09120000000", "123456"));
 ```
 
-All public send operations support `CancellationToken`.
+Both public notification interfaces expose asynchronous operations and accept `CancellationToken`. fileciteturn160file0 fileciteturn161file0
 
-## Configuration
+### Configuration
 
-The built-in `appsettings.json` provider reads the `NotificationServices` section.
+The default provider reads the `NotificationServices` section from application configuration.
 
 ```json
 {
@@ -165,182 +151,100 @@ The built-in `appsettings.json` provider reads the `NotificationServices` sectio
 }
 ```
 
-Never commit real credentials to source control. Use environment variables, .NET User Secrets, deployment secrets, a secret manager, or a custom secure configuration provider.
+Never commit real credentials. Use environment variables, .NET User Secrets, deployment secrets, a secret manager, or another secure configuration source.
 
-### Custom configuration source
+### Custom Configuration Provider
 
-Applications can replace the built-in configuration source by implementing `INotificationOptionsProvider`.
+Configuration retrieval is abstracted behind `INotificationOptionsProvider`.
 
-Conceptually:
+Default:
+
+```csharp
+builder.Services.AddNotificationServices();
+```
+
+Custom source:
+
+```csharp
+builder.Services.AddNotificationServices<DatabaseNotificationOptionsProvider>();
+```
+
+The custom provider must implement `INotificationOptionsProvider`. The DI registration supports both the default provider and a custom provider. fileciteturn162file0
+
+This allows configuration to come from sources such as:
 
 ```text
-Application configuration
-(appsettings / database / Redis / API / secrets / custom source)
-                          │
-                          ▼
-              INotificationOptionsProvider
-                          │
-                          ▼
-                NotificationServices
-                    ┌─────┴─────┐
-                    ▼           ▼
-                  Email        SMS
+appsettings.json ──┐
+Database ──────────┤
+Redis ─────────────┤──► INotificationOptionsProvider
+API ───────────────┤
+Secret Store ──────┘
 ```
 
-Example:
+### Email API
+
+`IEmailService` exposes two high-level operations:
 
 ```csharp
-public sealed class DatabaseNotificationOptionsProvider
-    : INotificationOptionsProvider
-{
-    private readonly INotificationSettingsRepository _repository;
-
-    public DatabaseNotificationOptionsProvider(
-        INotificationSettingsRepository repository)
-    {
-        _repository = repository;
-    }
-
-    public async ValueTask<NotificationOptions> GetOptionsAsync(
-        CancellationToken cancellationToken = default)
-    {
-        var settings = await _repository.GetAsync(cancellationToken);
-
-        return MapToNotificationOptions(settings);
-    }
-
-    private static NotificationOptions MapToNotificationOptions(
-        NotificationSettings settings)
-    {
-        // Map your application's configuration model here.
-        throw new NotImplementedException();
-    }
-}
+Task<EmailResult> SendMessageAsync(...);
+Task<EmailResult> SendOtpAsync(...);
 ```
 
-Register the custom provider:
+The Email implementation uses MailKit/SMTP while consumers depend only on the abstraction. fileciteturn160file0
 
-```csharp
-services.AddNotificationServices<DatabaseNotificationOptionsProvider>();
-```
-
-> The example above illustrates the extension point. The concrete repository and application-specific mapping remain outside this library.
-
-## Email
-
-The Email abstraction provides message and OTP operations.
-
-```csharp
-await emailService.SendMessageAsync(
-    new EmailMessage(
-        "user@example.com",
-        "Account activated",
-        "<p>Your account is now active.</p>",
-        isHtml: true));
-```
-
-OTP:
-
-```csharp
-await emailService.SendOtpAsync(
-    new EmailOtp("user@example.com", "123456"));
-```
-
-The implementation uses MailKit to connect to the configured SMTP server and returns an `EmailResult` describing the send outcome.
-
-## SMS
-
-The SMS abstraction keeps the consumer-facing API independent from the underlying gateway.
-
-```csharp
-await smsService.SendMessageAsync(
-    new SmsMessage(
-        "09120000000",
-        "Your verification has been completed."));
-```
-
-OTP:
-
-```csharp
-await smsService.SendOtpAsync(
-    new SmsOtp("09120000000", "123456"));
-```
-
-## SMS Provider Architecture
-
-The current provider flow is:
+### SMS Provider Architecture
 
 ```text
 ISmsService
     │
     ▼
- SmsService
+SmsService
     │
     ▼
 ISmsProviderFactory
     │
     ▼
- ISmsProvider
+ISmsProvider
     │
     ├── Melipayamak
-    ├── Future provider
-    └── Custom provider
+    └── Additional providers
 ```
 
-The consumer uses `ISmsService`; provider-specific HTTP details stay behind the provider abstraction.
+Consumers use `ISmsService`; provider-specific HTTP behavior remains behind the provider abstraction. The repository currently includes a **Melipayamak** provider. fileciteturn161file0
 
-The repository currently includes a Melipayamak provider implementation.
-
-## Architecture
-
-At a high level:
+### Public API
 
 ```text
-┌───────────────────────────────────────────────┐
-│                  Application                  │
-│                                               │
-│ appsettings / DB / Redis / API / Secrets      │
-└───────────────────────┬───────────────────────┘
-                        │
-                        ▼
-             INotificationOptionsProvider
-                        │
-                        ▼
-               NotificationServices
-                    ┌─────┴─────┐
-                    ▼           ▼
-              Email Service  SMS Service
-                    │           │
-                    ▼           ▼
-                  SMTP     Provider Factory
-                                │
-                                ▼
-                           SMS Provider
+IEmailService
+    ├── SendMessageAsync
+    └── SendOtpAsync
+
+ISmsService
+    ├── SendMessageAsync
+    └── SendOtpAsync
 ```
 
-The main design goal is to keep application-specific infrastructure outside the notification library while keeping Email and SMS implementations replaceable and testable.
+The API returns result objects so consuming applications do not need to understand provider-specific response formats.
 
-## Dependency Injection
+### Dependency Injection
 
-The public entry points are:
+The package provides two registration entry points:
 
 ```csharp
-services.AddNotificationServices();
+builder.Services.AddNotificationServices();
 ```
 
-and:
+or:
 
 ```csharp
-services.AddNotificationServices<TOptionsProvider>();
+builder.Services.AddNotificationServices<MyOptionsProvider>();
 ```
 
-The registration adds the common services, HTTP client support, Email services, SMS services, provider factory, and configuration adapters.
+The registration wires the configuration provider, HTTP client support, Email services, SMS services, adapters, and provider factory. fileciteturn162file0
 
-## Error Handling and Cancellation
+### Error Handling
 
-The library uses result objects for normal send failures and preserves cancellation semantics by rethrowing `OperationCanceledException`.
-
-A simplified usage pattern is:
+Normal send operations return result objects so the application can decide how to handle provider failures.
 
 ```csharp
 var result = await emailService.SendMessageAsync(
@@ -349,105 +253,38 @@ var result = await emailService.SendMessageAsync(
 
 if (!result.IsSuccess)
 {
-    // Handle the failure according to your application policy.
+    // Apply your application's error policy.
 }
 ```
 
-Application-specific retry, logging, alerting, and persistence policies should remain outside the core library.
+Application-specific retry, logging, alerting, and persistence policies should remain outside the package.
 
-## Testing
-
-The repository contains automated tests covering areas such as:
-
-- Dependency injection registration
-- Configuration providers and adapters
-- Validation
-- SMS provider selection
-- HTTP request behavior
-- OTP behavior
-- Failure handling
-- Cancellation behavior
-
-Run the full test suite locally:
-
-```bash
-dotnet test NotificationServices.slnx
-```
-
-## CI/CD
-
-GitHub Actions currently validates the project through a workflow that performs:
+### Architecture
 
 ```text
-Restore
-  ↓
-Build
-  ↓
-Tests + Coverage
-  ↓
-Pack NotificationServices.Kit
-  ↓
-Verify package contents
-  ↓
-Upload artifacts
+Application
+    │
+    ▼
+INotificationOptionsProvider
+    │
+    ▼
+NotificationServices
+   ┌─┴─────────┐
+   ▼           ▼
+ Email        SMS
+   │           │
+ SMTP       Provider Factory
+               │
+               ▼
+          SMS Provider
 ```
 
-The CI workflow is located at:
+The repository separates public abstractions from implementations and keeps provider-specific infrastructure behind interfaces.
+
+### Repository Structure
 
 ```text
-.github/workflows/ci.yml
-```
-
-NuGet publishing is handled by:
-
-```text
-.github/workflows/publish.yml
-```
-
-The publish workflow uses NuGet trusted publishing with GitHub Actions OIDC rather than storing a long-lived NuGet API key in the repository.
-
-## Packaging
-
-The consumer-facing package is:
-
-```text
-NotificationServices.Kit
-```
-
-The package is built from:
-
-```bash
-dotnet pack src/NotificationServices/NotificationServices.csproj -c Release
-```
-
-The CI workflow also verifies that the unified package contains the expected consumer assemblies before publishing artifacts.
-
-## Local Development
-
-Clone the repository:
-
-```bash
-git clone https://github.com/Mohammad-Amin-Nazeri/Notification_Services_Pattern.git
-cd Notification_Services_Pattern
-```
-
-Restore, build, test, and pack:
-
-```bash
-dotnet restore NotificationServices.slnx
-dotnet build NotificationServices.slnx -c Release
-dotnet test NotificationServices.slnx -c Release
-dotnet pack src/NotificationServices/NotificationServices.csproj -c Release
-```
-
-## Repository Structure
-
-```text
-.
-├── .github/
-│   └── workflows/
-│       ├── ci.yml
-│       └── publish.yml
+Notification_Services_Pattern/
 ├── Email/
 │   ├── NotificationServices.Email.Abstractions/
 │   └── NotificationServices.Email/
@@ -460,132 +297,159 @@ dotnet pack src/NotificationServices/NotificationServices.csproj -c Release
 │   └── NotificationServices.Tests/
 ├── samples/
 │   └── NotificationServices.Sample/
+├── .github/workflows/
 ├── NotificationServices.slnx
 ├── LICENSE
 └── README.md
 ```
 
-## Roadmap
+The unified `NotificationServices.Kit` package references the Email and SMS implementations and packages their assemblies for consumers. fileciteturn159file0
 
-The project is intentionally evolving in stages. Planned directions include:
+### Testing
 
-- Stronger provider contract tests
+The repository contains automated tests around configuration, dependency injection, validation, provider selection, HTTP behavior, OTP flows, failure handling, and cancellation.
+
+```bash
+dotnet test NotificationServices.slnx
+```
+
+### CI/CD
+
+GitHub Actions validates the project and package through a pipeline similar to:
+
+```text
+Restore → Build → Test + Coverage → Pack → Verify → Publish
+```
+
+The repository contains separate CI and NuGet publishing workflows.
+
+### Packaging
+
+The consumer-facing package is:
+
+```text
+NotificationServices.Kit
+```
+
+Create a Release package locally:
+
+```bash
+dotnet pack src/NotificationServices/NotificationServices.csproj -c Release
+```
+
+The package metadata targets .NET 10, uses MIT licensing, and includes the repository README and license. fileciteturn159file0
+
+### Local Development
+
+```bash
+git clone https://github.com/Mohammad-Amin-Nazeri/Notification_Services_Pattern.git
+cd Notification_Services_Pattern
+
+dotnet restore NotificationServices.slnx
+dotnet build NotificationServices.slnx -c Release
+dotnet test NotificationServices.slnx -c Release
+dotnet pack src/NotificationServices/NotificationServices.csproj -c Release
+```
+
+### Roadmap
+
 - More SMS providers
 - Additional notification channels
-- Better package/versioning guarantees
-- Observability hooks
-- Resilience capabilities such as timeout, retry, and failover where appropriate
-- Broader production-hardening of public APIs and provider integrations
+- Stronger provider contract tests
+- Observability and resilience hooks
+- Further production hardening
+- Continued public API and package-versioning improvements
 
-The goal is to add these capabilities without making the consumer API unnecessarily complex.
+### Contributing
 
-## Contributing
+Contributions are welcome, especially for new providers, notification channels, tests, configuration integrations, documentation, and reliability improvements.
 
-Ideas, bug reports, provider integrations, and public API improvements are welcome.
+Please open an issue or pull request with a clear description of the change.
 
-Please open an issue or pull request with a clear description of the problem or proposed change.
+### License
 
-Useful contribution areas include:
+MIT License. See [LICENSE](LICENSE).
 
-- New SMS providers
-- Email provider improvements
-- New notification channels
-- Configuration integrations
-- Tests
-- Documentation
-- Reliability and API design improvements
-
-## Support and Contact
+### Author
 
 **Mohammad Amin Nazeri**
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mohammad-amin-nazeri)
-[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Mohammad-Amin-Nazeri)
-[![Telegram](https://img.shields.io/badge/Telegram-2CA5E2?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/Aminn02)
-[![Instagram](https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/mohammad_amin_nazeri/)
-
-## License
-
-MIT License. See [LICENSE](LICENSE).
+- GitHub: https://github.com/Mohammad-Amin-Nazeri
+- LinkedIn: https://www.linkedin.com/in/mohammad-amin-nazeri/
+- Telegram: https://t.me/Aminn02
+- Instagram: https://www.instagram.com/mohammad-amin-nazeri/
 
 ---
 
 <a id="فارسی"></a>
 
-# 🇮🇷 فارسی
+## 🇮🇷 فارسی
 
-<a href="#english">🇬🇧 رفتن به انگلیسی</a>
+### معرفی
 
-## معرفی
+`NotificationServices.Kit` یک پکیج قابل استفاده مجدد برای **.NET 10** است که ارسال Notification از طریق **Email و SMS** را با API ساده، Dependency Injection و معماری Provider-Based فراهم می‌کند.
 
-`NotificationServices` یک کتابخانه قابل استفاده مجدد برای .NET است که ارسال اعلان از طریق Email و SMS را با API ساده، Dependency Injection و معماری Provider-Based فراهم می‌کند.
+هدف اصلی پکیج این است که Application به Abstractionهای پایدار وابسته باشد و جزئیات Provider و Configuration از کد مصرف‌کننده جدا بماند.
 
-پروژه بر پایه دو اصل اصلی طراحی شده است:
+```text
+Application
+    │
+    ├── IEmailService
+    └── ISmsService
+           │
+           ▼
+ NotificationServices.Kit
+       ┌───────┴───────┐
+       ▼               ▼
+    Email             SMS
+    SMTP          Provider Factory
+                       │
+                       ▼
+                  SMS Provider
+```
 
-1. **مصرف‌کننده باید به Abstractionهای پایدار Notification وابسته باشد.**
-2. **کتابخانه نباید تصمیم بگیرد Configuration پروژه از کجا ذخیره یا خوانده شود.**
-
-Provider پیش‌فرض Configuration اطلاعات را از `appsettings.json` می‌خواند، اما پروژه مصرف‌کننده می‌تواند `INotificationOptionsProvider` خودش را برای دیتابیس، Redis، API، Environment Variables، Secret Store یا هر منبع دیگری پیاده‌سازی کند.
-
-کتابخانه به EF Core، Dapper، SQL Server، Redis یا هیچ تکنولوژی ذخیره‌سازی خاصی وابسته نیست.
-
-## امکانات
+### ✨ قابلیت‌ها
 
 - 📧 ارسال Email از طریق SMTP / MailKit
-- 🔐 ارسال OTP با Email
+- 🔐 ارسال Email OTP
 - 📱 ارسال SMS
-- 🔐 ارسال OTP با SMS
-- 🔌 معماری Provider-Based برای Gatewayهای پیامکی
-- ⚙️ منبع Configuration قابل تعویض
-- 💉 ثبت ساده با Dependency Injection
+- 🔐 ارسال SMS OTP
+- 🔌 معماری Provider-Based برای SMS
+- ⚙️ Configuration قابل تعویض
+- 💉 Dependency Injection
+- ⛔ پشتیبانی از `CancellationToken`
 - 🧪 تست‌های خودکار
-- 📊 Code Coverage در CI
-- 🤖 GitHub Actions برای CI/CD
-- 📦 یک Package اصلی با نام `NotificationServices.Kit`
-- 🛡️ بدون وابستگی به دیتابیس
-- 🧩 جداسازی Abstractionهای عمومی از Implementationها
-- ⛔ پشتیبانی مناسب از `CancellationToken`
+- 📊 CI و Coverage
+- 📦 یک Package اصلی NuGet
+- 🛡️ بدون وابستگی به Database یا Persistence خاص
 
-## نصب
-
-Package اصلی را نصب کنید:
+### 📥 نصب
 
 ```bash
 dotnet add package NotificationServices.Kit
 ```
 
-یا از Package Manager Console:
+یا:
 
 ```powershell
 Install-Package NotificationServices.Kit
 ```
 
-در Repository علاوه بر Package اصلی، پروژه‌های Abstraction و Implementation مربوط به Email و SMS، یک Sample و تست‌های خودکار نیز وجود دارد.
+نسخه فعلی Package برابر **2.0.1** است و برای **.NET 10** ساخته می‌شود. Assemblyهای Email و SMS نیز در Package اصلی قرار می‌گیرند. fileciteturn159file0
 
-## شروع سریع
+### ⚡ شروع سریع
 
-### ثبت سرویس‌ها
+ثبت سرویس‌ها:
 
 ```csharp
 using NotificationServices.DependencyInjection;
 
-services.AddNotificationServices();
+builder.Services.AddNotificationServices();
 ```
 
-این ثبت پیش‌فرض از Provider داخلی `appsettings.json` استفاده می‌کند.
-
-برای استفاده از منبع Configuration سفارشی نیز می‌توانید بنویسید:
+دریافت سرویس‌ها:
 
 ```csharp
-services.AddNotificationServices<DatabaseNotificationOptionsProvider>();
-```
-
-کلاس سفارشی شما باید `INotificationOptionsProvider` را پیاده‌سازی کند.
-
-### دریافت سرویس‌ها
-
-```csharp
-using Microsoft.Extensions.DependencyInjection;
 using NotificationServices.Email.Abstractions.Interfaces;
 using NotificationServices.Sms.Abstractions.Interfaces;
 
@@ -593,7 +457,7 @@ var emailService = serviceProvider.GetRequiredService<IEmailService>();
 var smsService = serviceProvider.GetRequiredService<ISmsService>();
 ```
 
-### ارسال Email
+### 📧 ارسال Email
 
 ```csharp
 var result = await emailService.SendMessageAsync(
@@ -604,34 +468,34 @@ var result = await emailService.SendMessageAsync(
         isHtml: true));
 ```
 
-### ارسال OTP با Email
+### 🔐 ارسال Email OTP
 
 ```csharp
 var result = await emailService.SendOtpAsync(
     new EmailOtp("user@example.com", "123456"));
 ```
 
-### ارسال SMS
+### 📱 ارسال SMS
 
 ```csharp
 var result = await smsService.SendMessageAsync(
     new SmsMessage(
         "09120000000",
-        "سفارش شما ثبت شد."));
+        "Your order has been registered."));
 ```
 
-### ارسال OTP با SMS
+### 🔐 ارسال SMS OTP
 
 ```csharp
 var result = await smsService.SendOtpAsync(
     new SmsOtp("09120000000", "123456"));
 ```
 
-تمام عملیات ارسال عمومی از `CancellationToken` پشتیبانی می‌کنند.
+هر دو Interface اصلی عملیات Async دارند و `CancellationToken` را پشتیبانی می‌کنند. fileciteturn160file0 fileciteturn161file0
 
-## Configuration
+### ⚙️ Configuration
 
-Provider داخلی Configuration بخش `NotificationServices` را از `appsettings.json` می‌خواند.
+Provider پیش‌فرض بخش `NotificationServices` را از Application Configuration می‌خواند.
 
 ```json
 {
@@ -658,287 +522,101 @@ Provider داخلی Configuration بخش `NotificationServices` را از `appse
 }
 ```
 
-هرگز اطلاعات واقعی مانند Username، Password، API Key یا Secret را داخل Repository قرار ندهید. برای این اطلاعات از Environment Variables، .NET User Secrets، Secret Manager، Deployment Secrets یا Provider امن سفارشی استفاده کنید.
+Credential واقعی را داخل Git Commit نکنید. برای محیط‌های واقعی از Environment Variables، User Secrets، Secret Manager یا منبع امن دیگر استفاده کنید.
 
-### منبع Configuration سفارشی
+### 🔌 Configuration Provider سفارشی
 
-پروژه مصرف‌کننده می‌تواند Provider داخلی را با پیاده‌سازی `INotificationOptionsProvider` جایگزین کند.
+Configuration از طریق `INotificationOptionsProvider` از منطق Notification جدا شده است.
 
-به‌صورت مفهومی:
+حالت پیش‌فرض:
+
+```csharp
+builder.Services.AddNotificationServices();
+```
+
+منبع سفارشی:
+
+```csharp
+builder.Services.AddNotificationServices<DatabaseNotificationOptionsProvider>();
+```
+
+Provider سفارشی باید `INotificationOptionsProvider` را پیاده‌سازی کند. Registration مربوط به DI از هر دو حالت پشتیبانی می‌کند. fileciteturn162file0
+
+بنابراین Configuration می‌تواند از منابع مختلف تأمین شود:
 
 ```text
-Configuration پروژه
-(appsettings / database / Redis / API / secrets / منبع سفارشی)
-                              │
-                              ▼
-                  INotificationOptionsProvider
-                              │
-                              ▼
-                    NotificationServices
-                         ┌─────┴─────┐
-                         ▼           ▼
-                       Email        SMS
+appsettings.json ──┐
+Database ──────────┤
+Redis ─────────────┤──► INotificationOptionsProvider
+API ───────────────┤
+Secret Store ──────┘
 ```
 
-نمونه:
+### 📧 API مربوط به Email
+
+`IEmailService` دو عملیات اصلی دارد:
 
 ```csharp
-public sealed class DatabaseNotificationOptionsProvider
-    : INotificationOptionsProvider
-{
-    private readonly INotificationSettingsRepository _repository;
-
-    public DatabaseNotificationOptionsProvider(
-        INotificationSettingsRepository repository)
-    {
-        _repository = repository;
-    }
-
-    public async ValueTask<NotificationOptions> GetOptionsAsync(
-        CancellationToken cancellationToken = default)
-    {
-        var settings = await _repository.GetAsync(cancellationToken);
-
-        return MapToNotificationOptions(settings);
-    }
-
-    private static NotificationOptions MapToNotificationOptions(
-        NotificationSettings settings)
-    {
-        // Mapping مخصوص پروژه مصرف‌کننده را اینجا انجام دهید.
-        throw new NotImplementedException();
-    }
-}
+Task<EmailResult> SendMessageAsync(...);
+Task<EmailResult> SendOtpAsync(...);
 ```
 
-ثبت Provider سفارشی:
+Implementation مربوط به Email از MailKit/SMTP استفاده می‌کند و مصرف‌کننده فقط به Abstraction وابسته است. fileciteturn160file0
 
-```csharp
-services.AddNotificationServices<DatabaseNotificationOptionsProvider>();
-```
-
-> این نمونه فقط Extension Point را نشان می‌دهد. Repository و مدل Configuration مربوط به دیتابیس باید در پروژه مصرف‌کننده پیاده‌سازی شوند و بخشی از این Library نیستند.
-
-## Email
-
-Abstraction مربوط به Email عملیات ارسال پیام و OTP را ارائه می‌دهد.
-
-```csharp
-await emailService.SendMessageAsync(
-    new EmailMessage(
-        "user@example.com",
-        "فعال شدن حساب",
-        "<p>حساب شما فعال شد.</p>",
-        isHtml: true));
-```
-
-OTP:
-
-```csharp
-await emailService.SendOtpAsync(
-    new EmailOtp("user@example.com", "123456"));
-```
-
-Implementation مربوط به Email از MailKit برای اتصال به SMTP استفاده می‌کند و نتیجه ارسال را در قالب `EmailResult` برمی‌گرداند.
-
-## SMS
-
-Abstraction مربوط به SMS باعث می‌شود API مصرف‌کننده مستقل از Gateway پیامکی باقی بماند.
-
-```csharp
-await smsService.SendMessageAsync(
-    new SmsMessage(
-        "09120000000",
-        "کد تأیید شما با موفقیت ارسال شد."));
-```
-
-OTP:
-
-```csharp
-await smsService.SendOtpAsync(
-    new SmsOtp("09120000000", "123456"));
-```
-
-## معماری Provider پیامک
-
-جریان فعلی Providerها به شکل زیر است:
+### 📱 معماری SMS Provider
 
 ```text
 ISmsService
     │
     ▼
- SmsService
+SmsService
     │
     ▼
 ISmsProviderFactory
     │
     ▼
- ISmsProvider
+ISmsProvider
     │
     ├── Melipayamak
-    ├── Providerهای آینده
-    └── Provider سفارشی
+    └── Providerهای بعدی
 ```
 
-مصرف‌کننده فقط با `ISmsService` کار می‌کند و جزئیات HTTP و Gateway پشت Abstraction مربوط به Provider قرار دارند.
+مصرف‌کننده فقط `ISmsService` را می‌شناسد و جزئیات HTTP مربوط به Provider پشت Abstraction باقی می‌ماند. در Repository فعلی Provider مربوط به **Melipayamak** وجود دارد. fileciteturn161file0
 
-در حال حاضر Repository شامل Implementation مربوط به Melipayamak است.
-
-## معماری کلی
+### 🧱 API عمومی
 
 ```text
-┌───────────────────────────────────────────────┐
-│                   Application                │
-│                                               │
-│ appsettings / DB / Redis / API / Secrets      │
-└───────────────────────┬───────────────────────┘
-                        │
-                        ▼
-             INotificationOptionsProvider
-                        │
-                        ▼
-               NotificationServices
-                    ┌─────┴─────┐
-                    ▼           ▼
-              Email Service  SMS Service
-                    │           │
-                    ▼           ▼
-                  SMTP     Provider Factory
-                                │
-                                ▼
-                           SMS Provider
+IEmailService
+    ├── SendMessageAsync
+    └── SendOtpAsync
+
+ISmsService
+    ├── SendMessageAsync
+    └── SendOtpAsync
 ```
 
-هدف اصلی معماری این است که Infrastructure وابسته به پروژه مصرف‌کننده داخل خود Library قرار نگیرد و Implementationهای Email و SMS قابل تعویض و قابل تست باقی بمانند.
+Result Objectها باعث می‌شوند Application مصرف‌کننده به Response Format اختصاصی Providerها وابسته نباشد.
 
-## Dependency Injection
+### 💉 Dependency Injection
 
-دو Entry Point اصلی برای ثبت سرویس‌ها وجود دارد:
+دو روش اصلی برای Registration وجود دارد:
 
 ```csharp
-services.AddNotificationServices();
+builder.Services.AddNotificationServices();
 ```
 
-و:
+یا:
 
 ```csharp
-services.AddNotificationServices<TOptionsProvider>();
+builder.Services.AddNotificationServices<MyOptionsProvider>();
 ```
 
-ثبت سرویس‌ها شامل Configuration، پشتیبانی HTTP Client، Email، SMS، Provider Factory و Adapterهای مربوط به Configuration است.
+این Registration، Configuration Provider، HttpClient، سرویس‌های Email و SMS، Adapterها و Provider Factory را ثبت می‌کند. fileciteturn162file0
 
-## مدیریت خطا و Cancellation
-
-کتابخانه برای خطاهای عادی ارسال از Result Objectها استفاده می‌کند و Cancellation را با حفظ `OperationCanceledException` مدیریت می‌کند.
-
-نمونه:
-
-```csharp
-var result = await emailService.SendMessageAsync(
-    message,
-    cancellationToken);
-
-if (!result.IsSuccess)
-{
-    // بر اساس Policy پروژه خود خطا را مدیریت کنید.
-}
-```
-
-تصمیم‌های مربوط به Retry، Logging، Alerting و ذخیره وضعیت باید در سطح پروژه مصرف‌کننده یا Infrastructure بالاتر انجام شوند.
-
-## تست‌ها
-
-Repository شامل تست‌های خودکار برای بخش‌هایی مانند موارد زیر است:
-
-- ثبت Dependency Injection
-- Configuration Providerها و Adapterها
-- Validation
-- انتخاب SMS Provider
-- رفتار HTTP Requestها
-- OTP
-- مدیریت Failure
-- Cancellation
-
-اجرای تمام تست‌ها:
-
-```bash
-dotnet test NotificationServices.slnx
-```
-
-## CI/CD
-
-GitHub Actions در حال حاضر این مراحل را اجرا می‌کند:
+### 🧩 ساختار Repository
 
 ```text
-Restore
-  ↓
-Build
-  ↓
-Tests + Coverage
-  ↓
-Pack NotificationServices.Kit
-  ↓
-Verify package contents
-  ↓
-Upload artifacts
-```
-
-Workflow مربوط به CI:
-
-```text
-.github/workflows/ci.yml
-```
-
-Workflow انتشار NuGet:
-
-```text
-.github/workflows/publish.yml
-```
-
-فرآیند انتشار از Trusted Publishing و GitHub Actions OIDC استفاده می‌کند و به یک API Key بلندمدت NuGet در Repository وابسته نیست.
-
-## Packaging
-
-Package اصلی برای مصرف‌کننده:
-
-```text
-NotificationServices.Kit
-```
-
-ساخت Package:
-
-```bash
-dotnet pack src/NotificationServices/NotificationServices.csproj -c Release
-```
-
-CI نیز قبل از انتشار Artifact بررسی می‌کند که Assemblyهای مورد انتظار داخل Package قرار گرفته باشند.
-
-## توسعه محلی
-
-Repository را Clone کنید:
-
-```bash
-git clone https://github.com/Mohammad-Amin-Nazeri/Notification_Services_Pattern.git
-cd Notification_Services_Pattern
-```
-
-سپس Restore، Build، Test و Pack را اجرا کنید:
-
-```bash
-dotnet restore NotificationServices.slnx
-dotnet build NotificationServices.slnx -c Release
-dotnet test NotificationServices.slnx -c Release
-dotnet pack src/NotificationServices/NotificationServices.csproj -c Release
-```
-
-## ساختار Repository
-
-```text
-.
-├── .github/
-│   └── workflows/
-│       ├── ci.yml
-│       └── publish.yml
+Notification_Services_Pattern/
 ├── Email/
 │   ├── NotificationServices.Email.Abstractions/
 │   └── NotificationServices.Email/
@@ -951,58 +629,82 @@ dotnet pack src/NotificationServices/NotificationServices.csproj -c Release
 │   └── NotificationServices.Tests/
 ├── samples/
 │   └── NotificationServices.Sample/
+├── .github/workflows/
 ├── NotificationServices.slnx
 ├── LICENSE
 └── README.md
 ```
 
-## مسیر توسعه آینده
+Package اصلی `NotificationServices.Kit` Implementationهای Email و SMS را در اختیار مصرف‌کننده قرار می‌دهد. fileciteturn159file0
 
-پروژه به‌صورت مرحله‌ای توسعه پیدا می‌کند. مسیرهای پیشنهادی آینده شامل موارد زیر هستند:
+### 🧪 تست
 
-- تست‌های Contract قوی‌تر برای Providerها
-- SMS Providerهای بیشتر
-- اضافه شدن کانال‌های Notification جدید
-- بهبود Package و Versioning
-- Hookهای مربوط به Observability
-- قابلیت‌های Resilience مانند Timeout، Retry و Failover در موارد مناسب
-- Hardening بیشتر برای Public API و Provider Integrationها
+Repository دارای تست‌های خودکار برای بخش‌هایی مانند Configuration، Dependency Injection، Validation، Provider Selection، HTTP، OTP، Failure Handling و Cancellation است.
 
-هدف این است که قابلیت‌های جدید بدون پیچیده‌کردن غیرضروری API مصرف‌کننده اضافه شوند.
+```bash
+dotnet test NotificationServices.slnx
+```
 
-## مشارکت
+### 🤖 CI/CD
 
-ایده‌ها، گزارش Bug، Providerهای جدید و پیشنهادهای مرتبط با Public API قابل استقبال هستند.
+GitHub Actions پروژه را با جریان کلی زیر بررسی و Package را آماده انتشار می‌کند:
 
-برای مشارکت، یک Issue یا Pull Request با توضیح روشن درباره مشکل یا پیشنهاد خود ایجاد کنید.
+```text
+Restore → Build → Test + Coverage → Pack → Verify → Publish
+```
 
-زمینه‌های مناسب برای مشارکت:
+### 📦 ساخت Package
 
-- SMS Providerهای جدید
-- بهبود Email Provider
-- کانال‌های Notification جدید
-- Configuration Integrationها
-- تست‌ها
-- مستندات
-- بهبود Reliability و API Design
+Package اصلی:
 
-## پشتیبانی و ارتباط
+```text
+NotificationServices.Kit
+```
+
+ساخت نسخه Release:
+
+```bash
+dotnet pack src/NotificationServices/NotificationServices.csproj -c Release
+```
+
+Metadata پکیج برای .NET 10 تنظیم شده، License آن MIT است و README و LICENSE نیز داخل Package قرار می‌گیرند. fileciteturn159file0
+
+### 🛠️ توسعه محلی
+
+```bash
+git clone https://github.com/Mohammad-Amin-Nazeri/Notification_Services_Pattern.git
+cd Notification_Services_Pattern
+
+dotnet restore NotificationServices.slnx
+dotnet build NotificationServices.slnx -c Release
+dotnet test NotificationServices.slnx -c Release
+dotnet pack src/NotificationServices/NotificationServices.csproj -c Release
+```
+
+### 🗺️ Roadmap
+
+- Providerهای بیشتر برای SMS
+- Channelهای بیشتر Notification
+- تست‌های قوی‌تر برای Providerها
+- Observability و Resilience بیشتر
+- Production Hardening بیشتر
+- بهبود Public API و Package Versioning
+
+### 🤝 مشارکت
+
+Contribution برای Provider جدید، Channel جدید، تست، Configuration Integration، مستندات و بهبود Reliability مورد استقبال است.
+
+برای تغییرات مهم یک Issue یا Pull Request با توضیح واضح ایجاد کنید.
+
+### 📄 License
+
+MIT License. فایل [LICENSE](LICENSE) را مشاهده کنید.
+
+### 👨‍💻 توسعه‌دهنده
 
 **Mohammad Amin Nazeri**
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mohammad-amin-nazeri)
-[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Mohammad-Amin-Nazeri)
-[![Telegram](https://img.shields.io/badge/Telegram-2CA5E2?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/Aminn02)
-[![Instagram](https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/mohammad_amin_nazeri/)
-
-## مجوز
-
-این پروژه تحت مجوز MIT منتشر شده است. جزئیات در فایل [LICENSE](LICENSE) قرار دارد.
-
----
-
-<div align="center">
-
-**Notification Services Pattern · Email + SMS infrastructure for .NET**
-
-</div>
+- GitHub: https://github.com/Mohammad-Amin-Nazeri
+- LinkedIn: https://www.linkedin.com/in/mohammad-amin-nazeri/
+- Telegram: https://t.me/Aminn02
+- Instagram: https://www.instagram.com/mohammad-amin-nazeri/
